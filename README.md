@@ -1,145 +1,27 @@
-# ClippingBD Studio | Professional Image & Video Editing Services Platform
+# ClippingBD Studio
 
-**ClippingBD Studio** is an enterprise-grade SaaS platform for professional image editing, clipping path services, video editing, and AI-powered content solutions. Trusted by 10,000+ clients worldwide with 50M+ images processed.
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" alt="Next.js">
+  <img src="https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3ecf8e?style=for-the-badge&logo=supabase" alt="Supabase">
+  <img src="https://img.shields.io/badge/Prisma-6.x-2d3748?style=for-the-badge" alt="Prisma">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
+</p>
 
----
-
-## Latest Updates
-
-### v6.0 - Supabase PostgreSQL Integration (April 2026)
-
-- **Database** - Migrated from SQLite to Supabase PostgreSQL
-- **Prisma ORM** - Full database integration with Prisma 6
-- **Realtime** - Supabase Realtime for CMS content auto-refresh
-- **Storage** - Supabase Storage integration with local fallback
-- **Production Ready** - CORS, security headers, production builds
+> Professional Image & Video Editing Services Platform - Enterprise-grade SaaS for clipping path, photo retouching, video editing, and AI-powered content solutions.
 
 ---
 
-## Supabase Configuration
+## Overview
 
-### Environment Variables (.env)
+ClippingBD Studio is a comprehensive full-stack web application built with Next.js 16, Supabase PostgreSQL, and Prisma ORM. It provides a complete platform for managing image editing services, order processing, task assignment, and content management with real-time updates.
 
-```env
-# Database (Supabase PostgreSQL)
-DATABASE_URL="postgresql://postgres.[ref]:[password]@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres.[ref]:[password]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
+### Key Highlights
 
-# Auth - JWT Secret
-JWT_SECRET="your-jwt-secret-min-32-chars"
-
-# NextAuth
-NEXTAUTH_SECRET="your-nextauth-secret"
-NEXTAUTH_URL="http://localhost:3000"
-
-# Supabase (required for realtime + storage)
-NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT].supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
-SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
-
-# CORS Allowed Origins
-ALLOWED_ORIGINS="http://localhost:3000,https://clippingbdstudio.com"
-```
-
-### Supabase Dashboard Setup
-
-1. **Database** - Enable Connection Pooling (port 6543)
-2. **API** - Get project URL and anon key
-3. **Realtime** - Enable on tables: `cms_hero`, `cms_statistics`, `cms_features`, `cms_services`, `cms_testimonials`, `cms_portfolio_items`, `cms_team_members`, `cms_faqs`
-4. **Storage** - Create buckets: `assets`, `avatars`, `deliverables`, `source-files`
-5. **RLS** - Configure Row Level Security policies
-
----
-
-## Why Choose ClippingBD Studio?
-
-| Feature | Details |
-|---------|---------|
-| **Turnaround** | 24-hour standard delivery, 12-hour Express, 6-hour Nitro |
-| **Quality Guarantee** | Unlimited revisions until you're satisfied |
-| **Pricing** | Starting at $0.20/image for clipping path |
-| **Volume Discounts** | Up to 57% off for bulk orders (1000+ images) |
-| **24/7 Support** | Round-the-clock assistance via WhatsApp, chat, email |
-| **Secure & Confidential** | NDA signing, encrypted file transfer |
-| **Global Reach** | 120+ countries served |
-
----
-
-## Contact Information
-
-| Method | Details |
-|--------|---------|
-| **Email** | info@clippingbd.com |
-| **WhatsApp** | +880 1749 616724 |
-| **Phone** | +880 1749 616724 |
-| **Location** | Chirirbandar, Dinajpur, Bangladesh |
-| **Hours** | 24/7 Operations |
-
----
-
-## Table of Contents
-
-- [Why Choose ClippingBD Studio?](#why-choose-clippingbd-studio)
-- [Services We Offer](#services-we-offer)
-- [Key Features](#key-features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [npm Scripts](#npm-scripts)
-- [API Endpoints](#api-endpoints)
-- [Database Models](#database-models)
-- [Pages Overview](#pages-overview)
-- [User Roles](#user-roles)
-- [Demo Accounts](#demo-accounts)
-- [Build Status](#build-status)
-- [Roadmap](#roadmap)
-
----
-
-## Services We Offer
-
-### Image Editing Services
-- **Clipping Path** - Hand-drawn vector paths for precise cutouts ($0.20/image)
-- **Background Removal** - AI-powered background removal ($0.15/image)
-- **Image Masking** - Advanced masking for complex images ($0.50/image)
-- **Color Correction** - Professional color grading ($0.20/image)
-- **Photo Retouching** - Professional retouching services ($0.35/image)
-- **Ghost Mannequin** - E-commerce product photography ($1.00/image)
-
-### Video Editing Services
-- **Cinematic Editing** - Hollywood-quality edits ($22-45/video)
-- **Motion Graphics** - Custom animations
-- **Color Grading** - Professional color correction
-- **VFX** - Visual effects
-
-### AI Services
-- **Auto Background Removal** - AI-powered batch processing
-- **Smart Resize** - Intelligent image scaling
-- **Auto Masking** - AI-assisted edge detection
-
-### Web Development
-- **Landing Pages** - $500 - $1,200
-- **Custom Website** - $2,500+ (Next.js/React)
-- **E-commerce Platform** - $3,500+
-- **Monthly Support** - $200/month
-
----
-
-## Key Features
-
-| Feature | Description |
-|---------|-------------|
-| **Multi-Role Access** | ADMIN, EDITOR, QA, CLIENT, DEVELOPER, GUEST roles |
-| **Dynamic CMS** | Edit all homepage content via Prisma Studio |
-| **3D Hero Section** | Interactive React Three Fiber scene |
-| **Real-time Dashboard** | Live KPI tracking with Supabase |
-| **Wallet System** | Add funds, payments, transactions |
-| **Order Management** | Full CRUD with status tracking |
-| **Task Queue** | Editor job board, task claiming |
-| **Review System** | Client reviews, ratings |
-| **Support Tickets** | Help desk system |
-| **File Upload** | Supabase Storage + local fallback |
-| **Realtime Chat** | Supabase Realtime messaging |
-| **Realtime CMS** | Auto-refresh content on database changes |
+- **10,000+** Clients Worldwide
+- **50M+** Images Processed
+- **120+** Countries Served
+- **24/7** Operations
 
 ---
 
@@ -147,54 +29,62 @@ ALLOWED_ORIGINS="http://localhost:3000,https://clippingbdstudio.com"
 
 | Category | Technology |
 |----------|------------|
-| **Framework** | Next.js 16 (App Router) |
-| **Language** | TypeScript 5 |
-| **Database** | PostgreSQL (Supabase) + Prisma ORM |
-| **Auth** | Custom JWT with cookies |
-| **Realtime** | Supabase Realtime subscriptions |
-| **Storage** | Supabase Storage + Local fallback |
-| **UI** | Radix UI + Shadcn/ui (57 components) |
+| **Frontend** | Next.js 16, React 18, TypeScript |
+| **Backend** | Next.js API Routes, Prisma 6 |
+| **Database** | PostgreSQL (Supabase) |
+| **Authentication** | JWT with HTTP-only cookies |
+| **Realtime** | Supabase Realtime Subscriptions |
+| **Storage** | Supabase Storage + Local Fallback |
+| **UI Components** | Radix UI + Shadcn/ui (57 components) |
 | **Styling** | Tailwind CSS + Framer Motion |
 | **3D Graphics** | React Three Fiber + Three.js |
-| **State** | Zustand |
+| **State Management** | Zustand |
 | **Forms** | React Hook Form + Zod |
-| **Charts** | Recharts |
-| **Payments** | Stripe + PayPal ready |
+| **Deployment** | Vercel, Docker |
 
 ---
 
-## Supabase Configuration (Production)
+## Features
 
-### Database Connection
-```env
-DATABASE_URL="postgresql://postgres.[ref]:[password]@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres.[ref]:[password]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
-```
+### Core Platform
+- Multi-role access control (Admin, Developer, QA, Editor, Client, Guest)
+- Complete order management with status tracking
+- Task queue system for editors
+- Quality assurance workflow
+- Real-time chat and notifications
+- Wallet and payment integration
 
-### Supabase Settings
-1. Enable **Connection Pooling** on port 6543
-2. Create service role key for admin operations
-3. Enable **Realtime** on required tables:
-   - `cms_hero`, `cms_statistics`, `cms_features`
-   - `cms_services`, `cms_pricing_tiers`, `cms_testimonials`
-   - `cms_portfolio_items`, `cms_team_members`, `cms_faqs`
-4. Configure **Row Level Security (RLS)** policies
-5. Set up **Storage** buckets: `assets`, `avatars`, `deliverables`, `source-files`
+### Content Management
+- Dynamic CMS with 13+ content tables
+- Real-time content updates via Supabase
+- Hero sections, statistics, features, services
+- Portfolio management with before/after images
+- Team profiles and testimonials
+- FAQ and pricing tiers
+
+### Technical
+- Server-side rendering with Next.js App Router
+- Type-safe database operations with Prisma
+- Responsive design for all breakpoints
+- 3D interactive hero section
+- API rate limiting and security headers
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
+
+- Node.js 18+ 
 - npm or yarn
+- Supabase account (for production)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/clippingbd/studio.git
-cd studio
+git clone https://github.com/rbkhan007/ClippingBD-Studio.git
+cd ClippingBD-Studio
 
 # Install dependencies
 npm install
@@ -215,40 +105,74 @@ npm run db:seed:cms
 npm run dev
 ```
 
-### Access the Application
-
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## npm Scripts
+## Environment Configuration
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start development server on port 3000 |
+### Development (.env)
+
+```env
+DATABASE_URL="file:./db/dev.db"
+JWT_SECRET="your-dev-secret-key-min-32-characters"
+NEXTAUTH_SECRET="your-nextauth-secret"
+NEXTAUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+ALLOWED_ORIGINS="http://localhost:3000"
+NODE_ENV="development"
+```
+
+### Production (.env)
+
+```env
+# Database (Supabase PostgreSQL)
+DATABASE_URL="postgresql://postgres.[user]:[password]@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.[user]:[password]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
+
+# Auth
+JWT_SECRET="your-production-jwt-secret-min-32-chars"
+NEXTAUTH_SECRET="your-nextauth-secret"
+NEXTAUTH_URL="https://yourdomain.com"
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL="https://[project].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+
+# CORS
+ALLOWED_ORIGINS="https://yourdomain.com,https://www.yourdomain.com"
+NODE_ENV="production"
+```
+
+---
+
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
 | `npm run build` | Build for production |
 | `npm run start` | Start production server |
-| `npm run lint` | Run ESLint (needs migration to v9) |
 | `npm run db:push` | Push schema to database |
 | `npm run db:generate` | Generate Prisma client |
-| `npm run db:seed` | Seed database with demo users and data |
-| `npm run db:seed:cms` | Seed CMS tables with content |
-| `npm run db:seed:static` | Seed static content data |
-| `npm run studio` | Open Prisma Studio (port 5556) |
+| `npm run db:seed` | Seed demo data |
+| `npm run db:seed:cms` | Seed CMS content |
+| `npm run studio` | Open Prisma Studio |
 
 ---
 
 ## Demo Accounts
 
-After seeding, use these accounts to test different roles:
+After seeding, use these credentials to test different roles:
 
 | Role | Email | Password |
 |------|-------|----------|
-| **Admin** | admin@clippingbd.com | password123 |
-| **Developer** | dev@clippingbd.com | password123 |
-| **Client** | client@example.com | password123 |
-| **Editor** | editor1@clippingbd.com | password123 |
-| **QA** | qa@clippingbd.com | password123 |
+| Admin | admin@clippingbd.com | password123 |
+| Developer | developer@clippingbd.com | password123 |
+| Client | client@example.com | password123 |
+| Editor | editor1@clippingbd.com | password123 |
+| QA | qa@clippingbd.com | password123 |
 
 ---
 
@@ -256,166 +180,46 @@ After seeding, use these accounts to test different roles:
 
 ### Authentication
 - `POST /api/auth/login` - User login
-- `POST /api/auth/signup` - User registration
+- `POST /api/auth/signup` - User registration  
 - `POST /api/auth/logout` - User logout
 - `GET /api/auth/me` - Get current user
-- `POST /api/auth/forgot-password` - Password reset request
-- `POST /api/auth/reset-password` - Reset password
 
-### Public CMS API
-- `GET /api/cms/hero` - Get hero section data
-- `GET /api/cms/statistics` - Get statistics
-- `GET /api/cms/features` - Get features
-- `GET /api/cms/services` - Get services
-- `GET /api/cms/testimonials` - Get testimonials
-- `GET /api/cms/portfolio` - Get portfolio items
-- `GET /api/cms/team` - Get team members
-- `GET /api/cms/faqs` - Get FAQs
-- `GET /api/cms/pricing-tiers` - Get pricing tiers
-- `GET /api/cms/partners` - Get partners
-- `GET /api/cms/social-links` - Get social links
-- `GET /api/cms/contact-info` - Get contact info
-- `GET /api/cms/settings` - Get global settings
+### CMS (Public)
+- `GET /api/cms/hero` - Hero section
+- `GET /api/cms/statistics` - Statistics
+- `GET /api/cms/features` - Features
+- `GET /api/cms/services` - Services
+- `GET /api/cms/testimonials` - Testimonials
+- `GET /api/cms/portfolio` - Portfolio items
+- `GET /api/cms/team` - Team members
 
-### Orders
-- `GET /api/orders` - List orders
-- `POST /api/orders` - Create order
-- `PUT /api/orders` - Update order
-- `DELETE /api/orders` - Delete order
+### Business
+- `GET/POST /api/orders` - Orders
+- `GET/POST /api/tasks` - Tasks
+- `GET/POST /api/chat/*` - Chat
+- `GET /api/notifications` - Notifications
 
 ### Admin
-- `GET /api/admin/crud` - Generic CRUD operations
-- `GET /api/admin/users` - List users
-- `GET /api/admin/statistics` - Dashboard statistics
-- `GET /api/admin/settings` - System settings
-
-### Users (Admin)
-- `GET /api/users` - List all users
-- `PUT /api/users` - Update user role/status
-- `DELETE /api/users` - Delete user
-
-### Transactions
-- `GET /api/transactions` - List transactions
-- `POST /api/transactions` - Create transaction
-
-### Reviews
-- `GET /api/reviews` - List reviews
-- `POST /api/reviews` - Submit review
-
-### Contact
-- `POST /api/contact` - Submit contact form
+- `GET/POST /api/admin/*` - Admin operations
 
 ---
 
-## Database Models
-
-The application uses Prisma with SQLite for local development. Key models include:
+## Database Schema
 
 ### Core Models
 - **User** - Multi-role user accounts
 - **Service** - Available services with pricing
 - **Order** - Client orders with tracking
 - **Task** - Editor job assignments
-- **QAReview** - Quality assurance reviews
 
-### CMS Models (Dynamic Content)
-- **CmsHero** - Homepage hero section
-- **CmsStatistic** - Statistics/counters
-- **CmsFeature** - Feature highlights
-- **CmsService** - Service listings
-- **CmsTestimonial** - Customer testimonials
-- **CmsPortfolioItem** - Portfolio before/after images
-- **CmsTeamMember** - Team profiles
-- **CmsFaq** - Frequently asked questions
-- **CmsPricingTier** - Pricing plans
-- **CmsPartner** - Partner/client logos
-- **CmsSocialLink** - Social media links
-- **CmsContactInfo** - Contact details
-- **CmsGlobalSettings** - Site-wide settings
+### CMS Models
+- **CmsHero**, **CmsStatistic**, **CmsFeature**
+- **CmsService**, **CmsTestimonial**, **CmsPortfolioItem**
+- **CmsTeamMember**, **CmsFaq**, **CmsPricingTier**
 
 ### Business Models
-- **Transaction** - Financial records
-- **SupportTicket** - Help desk tickets
-- **ChatRoom/ChatMessage** - Messaging
-- **Asset** - File uploads
-- **Notification** - User notifications
-
----
-
-## Pages Overview
-
-### Public Pages
-| Route | Description |
-|-------|-------------|
-| `/` | Homepage with 3D hero, services, testimonials |
-| `/services` | All services overview |
-| `/services/clipping-path` | Clipping path service details |
-| `/services/image` | Image editing services |
-| `/services/video` | Video editing services |
-| `/services/ai` | AI-powered services |
-| `/services/web` | Web development services |
-| `/pricing` | Pricing calculator & plans |
-| `/portfolio` | Before/after gallery |
-| `/team` | Team members |
-| `/contact` | Contact form & locations |
-| `/studio` | Public gallery |
-
-### Auth Pages
-| Route | Description |
-|-------|-------------|
-| `/auth` | Login/Signup |
-| `/auth/forgot-password` | Password recovery |
-| `/auth/reset-password` | Password reset |
-
-### Client Dashboard
-| Route | Description |
-|-------|-------------|
-| `/dashboard` | Overview & stats |
-| `/orders` | Order management |
-| `/billing` | Wallet & payments |
-| `/support` | Help tickets |
-
-### Admin Dashboard
-| Route | Description |
-|-------|-------------|
-| `/admin/dashboard` | Analytics overview |
-| `/admin/users` | User CRM |
-| `/admin/orders` | Order management |
-| `/admin/cms` | Content management |
-| `/admin/settings` | System configuration |
-
----
-
-## User Roles & Features
-
-| Role | Permissions |
-|------|-------------|
-| **ADMIN** | Full access to all features, CMS editing |
-| **DEVELOPER** | Admin + system config, env vars, logs |
-| **QA** | Review queue, approve/reject submissions |
-| **EDITOR** | Job board, task completion, earnings |
-| **CLIENT** | Orders, billing, support |
-| **GUEST** | Public pages only |
-
----
-
-## Build Status
-
-| Check | Status |
-|-------|--------|
-| **TypeScript** | ✅ 0 errors |
-| **Production Build** | ✅ 79 pages compiled |
-| **Authentication** | ✅ All routes protected |
-| **API Routes** | ✅ 50+ endpoints |
-| **3D Scene** | ✅ React Three Fiber working |
-| **CMS System** | ✅ 13 dynamic tables |
-| **Database** | ✅ SQLite + Prisma |
-| **Responsive Design** | ✅ All breakpoints |
-| **Portfolio Images** | ✅ Full ratio with object-contain |
-| **Team Images** | ✅ Natural aspect ratio display |
-| **Service Tabs** | ✅ Separate category buttons |
-| **Navigation** | ✅ SPA navigation with handleNavigate |
-| **Clipboard** | ✅ Fallback for non-secure contexts |
+- **Transaction**, **SupportTicket**, **ChatRoom**
+- **Asset**, **Notification**
 
 ---
 
@@ -424,54 +228,52 @@ The application uses Prisma with SQLite for local development. Key models includ
 ```
 src/
 ├── app/                    # Next.js App Router
-│   ├── api/               # API routes (admin, auth, cms, etc.)
+│   ├── api/               # API routes
 │   ├── auth/              # Auth pages
-│   ├── dashboard/         # Dashboard
-│   ├── services/          # Service detail pages
 │   └── [routes]           # Public pages
 ├── components/
 │   ├── layout/            # Navbar, Footer, Sidebar
-│   ├── providers/         # Theme, Redux providers
-│   ├── three/             # 3D scene components
 │   ├── ui/                # 57 Shadcn/ui components
+│   ├── three/             # 3D scene components
 │   └── zones/             # Feature zones by role
-│       ├── admin/
-│       ├── client/
-│       ├── editor/
-│       ├── public/        # Homepage, Services, etc.
-│       └── qa/
-├── config/                # Navigation config
-├── data/                  # Static data files
 ├── hooks/                 # Custom React hooks
-│   └── realtime/         # Real-time data hooks
-├── lib/                   # Core libraries
-│   ├── db.ts             # Prisma singleton
-│   └── supabase/         # Supabase client
-├── store/                 # Zustand stores
-│   ├── app-store.ts     # Main state
-│   └── app-settings.ts  # Theme settings
+│   └── realtime/          # Real-time subscriptions
+├── lib/                   # Core utilities
+├── store/                 # Zustand state stores
 └── types/                 # TypeScript definitions
 ```
 
 ---
 
-## Roadmap
+## Supabase Setup (Production)
 
-### In Progress
-- [x] Dynamic CMS system
-- [x] 3D hero section
-- [x] Real-time data hooks
+1. **Database**: Enable Connection Pooling (port 6543)
+2. **API**: Get project URL and anon key
+3. **Realtime**: Enable on CMS tables
+4. **Storage**: Create buckets (assets, avatars, deliverables)
+5. **RLS**: Configure Row Level Security policies
 
-### Planned Features
-- [ ] Email notifications
-- [ ] Stripe payment integration
-- [ ] WebSocket real-time updates
-- [ ] Mobile app (React Native)
-- [ ] AI-powered auto-clipping
-- [ ] Bulk order processing
-- [ ] Team collaboration
-- [ ] API rate limiting dashboard
-- [ ] ESLint v9 migration
+---
+
+## Build Status
+
+| Check | Status |
+|-------|--------|
+| TypeScript | ✅ 0 errors |
+| Production Build | ✅ 79 pages |
+| API Routes | ✅ 50+ endpoints |
+| Database | ✅ PostgreSQL + Prisma |
+| Realtime | ✅ Supabase |
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
@@ -481,16 +283,20 @@ MIT License - Copyright 2024-2026 ClippingBD Studio
 
 ---
 
-## Team
+## Contact
 
-| Member | Role |
-|--------|------|
-| **Belal Sarker** | Founder & Admin |
-| **Rakibul Hasan** | Lead Developer & Designer |
+| Method | Details |
+|--------|---------|
+| Email | info@clippingbd.com |
+| WhatsApp | +880 1749 616724 |
+| Location | Chirirbandar, Dinajpur, Bangladesh |
 
 ---
 
-**Built with ❤️ using Next.js, TypeScript, Tailwind CSS, and React Three Fiber**
-#   C l i p p i n g B D - S t u d i o  
- #   C l i p p i n g B D - S t u d i o  
- 
+<p align="center">Built with ❤️ using Next.js, TypeScript, Tailwind CSS, and React Three Fiber</p>
+
+<p align="center">
+  <a href="https://vercel.com">
+    <img src="https://vercelbadge.vercel.app/api/rbkhan007/ClippingBD-Studio" alt="Deploy with Vercel">
+  </a>
+</p>
