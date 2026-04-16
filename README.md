@@ -460,4 +460,5 @@ MIT License - Copyright 2024-2026 ClippingBD Studio
 
 **Built with ❤️ using Next.js, TypeScript, Tailwind CSS, and React Three Fiber**
 #   C l i p p i n g B D - S t u d i o  
+ #   C l i p p i n g B D - S t u d i o  
  
