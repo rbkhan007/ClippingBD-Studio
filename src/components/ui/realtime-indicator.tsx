@@ -6,12 +6,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAppSettings } from '@/store/app-settings';
 import { isRealtimeEnabled, isSupabaseConfigured } from '@/lib/supabase';
 
+// Only show in development mode
+const isDev = process.env.NODE_ENV === 'development';
+
 export function RealtimeIndicator() {
   const [isConnected, setIsConnected] = useState(false);
   const [showIndicator, setShowIndicator] = useState(false);
   const { isLive } = useAppSettings();
 
   useEffect(() => {
+    // Skip in production
+    if (!isDev) {
+      setShowIndicator(false);
+      return;
+    }
+
     const supabaseConfigured = isSupabaseConfigured();
     const realtimeEnabled = isRealtimeEnabled();
     setIsConnected(supabaseConfigured && isLive);
@@ -23,6 +32,11 @@ export function RealtimeIndicator() {
       return () => clearTimeout(timer);
     }
   }, [isLive]);
+
+  // Don't render in production
+  if (!isDev) {
+    return null;
+  }
 
   const isSupabase = isSupabaseConfigured();
 
