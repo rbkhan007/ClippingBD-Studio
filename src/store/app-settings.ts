@@ -44,7 +44,7 @@ interface AppSettingsState {
 export const useAppSettings = create<AppSettingsState>()(
   persist(
     (set, get) => ({
-      theme: 'system',
+      theme: 'dark',
       primaryColor: '#00d4ff',
       secondaryColor: '#22d3ee',
       accentColor: '#f97316',
