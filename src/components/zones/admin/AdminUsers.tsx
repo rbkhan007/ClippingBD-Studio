@@ -130,13 +130,18 @@ export function AdminUsers() {
         body: JSON.stringify({
           userId: editingUser.id,
           name: editingUser.name,
+          email: editingUser.email,
           role: editingUser.role,
-          status: editingUser.status,
+          status: editingUser.is_active ? 'ACTIVE' : 'SUSPENDED',
+          walletBalance: editingUser.wallet_balance,
         }),
       });
       if (response.ok) {
         toast({ title: 'User updated successfully' });
         fetchUsers();
+      } else {
+        const data = await response.json();
+        toast({ title: data.error || 'Failed to update user', variant: 'destructive' });
       }
     } catch (error) {
       console.error('Error updating user:', error);
@@ -336,7 +341,7 @@ export function AdminUsers() {
 
         <TabsContent value={activeTab} className="relative">
           {/* Users List */}
-          <ScrollArea className="h-[calc(100vh-450px)]" id="admin-users-scroll">
+          <ScrollArea className="h-[600px] lg:h-[calc(100vh-450px)]" id="admin-users-scroll">
             <div className="space-y-3">
               {filteredUsers.map((user, index) => (
                 <motion.div

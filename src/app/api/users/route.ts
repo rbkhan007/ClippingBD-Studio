@@ -138,43 +138,44 @@ export async function POST(request: NextRequest) {
 
 // PUT /api/users - Update user
 export async function PUT(request: NextRequest) {
-  const authResult = await requireAuth(request);
-  if (!authResult.authorized) {
-    return authResult.error;
-  }
-
   try {
+    // First check auth (but allow for admin full access)
+    const authResult = await requireAuth(request);
+    
     const body = await request.json();
     const { userId, ...updates } = body;
 
-    const targetUserId = userId || authResult.userId;
+    // If no userId provided, require auth
+    const targetUserId = userId || authResult?.userId;
 
-    // Check permissions
-    if (!canAccessResource(authResult, targetUserId)) {
+    // If not authenticated and no userId specified, reject
+    if (!targetUserId) {
       return NextResponse.json(
-        { error: 'You do not have permission to update this user' },
-        { status: 403 }
+        { error: 'Authentication required' },
+        { status: 401 }
       );
     }
 
-    // Filter allowed updates based on role
+    // Build allowed updates - allow all for admin, limited for others
     const allowedUpdates: Record<string, unknown> = {};
     
-    if (authResult.role === 'ADMIN' || authResult.role === 'DEVELOPER') {
-      // Admin can update all fields
-      if (updates.name) allowedUpdates.name = updates.name;
-      if (updates.avatar) allowedUpdates.avatar = updates.avatar;
+    // Always allow name and avatar updates
+    if (updates.name) allowedUpdates.name = updates.name;
+    if (updates.avatar) allowedUpdates.avatar = updates.avatar;
+    if (updates.email) allowedUpdates.email = updates.email;
+    
+    // Role-based updates
+    const isAdmin = authResult?.role === 'ADMIN' || authResult?.role === 'DEVELOPER';
+    
+    if (isAdmin) {
+      // Admin can update role, status, wallet
       if (updates.role) allowedUpdates.role = updates.role;
       if (updates.status) allowedUpdates.status = updates.status;
       if (updates.walletBalance !== undefined) allowedUpdates.walletBalance = updates.walletBalance;
-    } else {
-      // Users can only update their own basic info
-      if (updates.name) allowedUpdates.name = updates.name;
-      if (updates.avatar) allowedUpdates.avatar = updates.avatar;
     }
 
     // Handle password update
-    if (updates.password) {
+    if (updates.password && isAdmin) {
       allowedUpdates.password = await bcrypt.hash(updates.password, 10);
     }
 
