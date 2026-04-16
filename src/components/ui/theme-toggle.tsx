@@ -29,6 +29,7 @@ function applyTheme(theme: string) {
   document.documentElement.classList.remove('light', 'dark');
   document.documentElement.classList.add(theme);
   document.documentElement.style.colorScheme = theme;
+  localStorage.setItem('clippingbd-theme', JSON.stringify({ state: { theme } }));
 }
 
 function getStoredTheme(): string {
@@ -46,27 +47,34 @@ function getStoredTheme(): string {
   return 'dark';
 }
 
+function getInitialTheme(): string {
+  if (typeof window === 'undefined') return 'dark';
+  return getStoredTheme();
+}
+
 export function ThemeToggle({
   variant = 'icon',
   size = 'md',
   showLabel = false,
   className,
 }: ThemeToggleProps) {
-  const { theme, toggleTheme } = useThemeStore();
+  const { theme, toggleTheme, setTheme } = useThemeStore();
   const [mounted, setMounted] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('dark');
 
   useEffect(() => {
     setMounted(true);
-    setCurrentTheme(getStoredTheme());
-  }, []);
+    const stored = getStoredTheme();
+    setCurrentTheme(stored);
+    setTheme(stored as 'light' | 'dark');
+  }, [setTheme]);
 
   const handleToggle = useCallback(() => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     applyTheme(newTheme);
     setCurrentTheme(newTheme);
-    toggleTheme();
-  }, [theme, toggleTheme]);
+    setTheme(newTheme as 'light' | 'dark');
+  }, [currentTheme, setTheme]);
 
   const actualTheme = mounted ? currentTheme : 'dark';
 
