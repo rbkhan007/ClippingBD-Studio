@@ -111,9 +111,8 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "google-site-verification-code",
-    yandex: "yandex-verification-code",
+verification: {
+    google: "TOQM0-HHIWSkBoNUU4SLvp-C4l1eklGePz8rX85mmeM",
   },
   alternates: {
     canonical: "https://clippingbd.com",
