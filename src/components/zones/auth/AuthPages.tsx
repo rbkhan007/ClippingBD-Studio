@@ -111,23 +111,21 @@ export function AuthPages() {
 
 function LoginForm({ onSignupClick }: { onSignupClick: () => void }) {
   const router = useRouter();
-  const { setUser, setCurrentPage, isAuthenticated } = useAppStore();
+  const { setUser, setCurrentPage, isAuthenticated, user } = useAppStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
-    if (shouldRedirect && isAuthenticated) {
-      const user = useAppStore.getState().user;
-      const redirectPath = user ? getDashboardPath(user.role) : '/dashboard';
+    if (isAuthenticated && user) {
+      const redirectPath = getDashboardPath(user.role);
       setCurrentPage(redirectPath);
       window.history.pushState({}, '', redirectPath);
       router.push(redirectPath);
     }
-  }, [shouldRedirect, isAuthenticated, router, setCurrentPage]);
+  }, [isAuthenticated, user, router, setCurrentPage]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +143,6 @@ function LoginForm({ onSignupClick }: { onSignupClick: () => void }) {
 
       if (res.ok && data.user) {
         setUser(data.user);
-        setShouldRedirect(true);
       } else {
         // Handle different error cases
         if (data.status === 'PENDING') {
@@ -288,7 +285,7 @@ function LoginForm({ onSignupClick }: { onSignupClick: () => void }) {
 
 function SignupForm() {
   const router = useRouter();
-  const { setUser, setCurrentPage, isAuthenticated } = useAppStore();
+  const { setUser, setCurrentPage, isAuthenticated, user } = useAppStore();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -298,17 +295,15 @@ function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
-    if (shouldRedirect && isAuthenticated) {
-      const user = useAppStore.getState().user;
-      const redirectPath = user ? getDashboardPath(user.role) : '/dashboard';
+    if (isAuthenticated && user) {
+      const redirectPath = getDashboardPath(user.role);
       setCurrentPage(redirectPath);
       window.history.pushState({}, '', redirectPath);
       router.push(redirectPath);
     }
-  }, [shouldRedirect, isAuthenticated, router, setCurrentPage]);
+  }, [isAuthenticated, user, router, setCurrentPage]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -352,23 +347,14 @@ function SignupForm() {
 
       const data = await res.json();
 
-      if (res.ok) {
-        if (data.requiresApproval) {
-          // Account created but needs approval
-          setError('');
-          setLoading(false);
-          // Show success message and redirect to login
-          alert('Account created successfully! Your account is pending approval. You will receive an email once an administrator approves your account.');
-          // Switch to login tab
-          const switchToLogin = () => {
-            const loginTab = document.querySelector('button:not([type="button"])');
-            if (loginTab) (loginTab as HTMLButtonElement).click();
-          };
-          setTimeout(switchToLogin, 100);
-        } else if (data.user) {
-          // Account approved immediately - login and redirect
+      if (res.ok && data.success) {
+        // Account created successfully
+        if (data.user) {
+          // Auto-approved - login and redirect
           setUser(data.user);
-          setShouldRedirect(true);
+        } else {
+          // Show success message
+          alert('Account created successfully! You can now log in.');
         }
       } else {
         setError(data.error || data.details?.[0]?.message || 'Failed to create account. Please try again.');
