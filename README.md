@@ -6,16 +6,48 @@
 
 ## Latest Updates
 
-### v5.0 - Portfolio & Team Images Fixed (April 2026)
+### v6.0 - Supabase PostgreSQL Integration (April 2026)
 
-- **Portfolio Images** - Before/After images display in full ratio with `object-contain`
-- **Team Page** - Profile images display in natural aspect ratio
-- **Service Categories** - All service pages show separate category tabs
-- **Clipping Path Page** - Shows Image Editing, Specialized, E-commerce categories
-- **Navigation Fixed** - All links use `handleNavigate()` for SPA navigation
-- **Clipboard Fallback** - Fixed `navigator.clipboard` errors in Dev console
-- **Clean Repository** - Removed unused files, proper `.gitignore`, `.env.example`
-- **Studio Live Demos** - Added 3 live demo templates on /studio page
+- **Database** - Migrated from SQLite to Supabase PostgreSQL
+- **Prisma ORM** - Full database integration with Prisma 6
+- **Realtime** - Supabase Realtime for CMS content auto-refresh
+- **Storage** - Supabase Storage integration with local fallback
+- **Production Ready** - CORS, security headers, production builds
+
+---
+
+## Supabase Configuration
+
+### Environment Variables (.env)
+
+```env
+# Database (Supabase PostgreSQL)
+DATABASE_URL="postgresql://postgres.[ref]:[password]@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.[ref]:[password]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
+
+# Auth - JWT Secret
+JWT_SECRET="your-jwt-secret-min-32-chars"
+
+# NextAuth
+NEXTAUTH_SECRET="your-nextauth-secret"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Supabase (required for realtime + storage)
+NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+
+# CORS Allowed Origins
+ALLOWED_ORIGINS="http://localhost:3000,https://clippingbdstudio.com"
+```
+
+### Supabase Dashboard Setup
+
+1. **Database** - Enable Connection Pooling (port 6543)
+2. **API** - Get project URL and anon key
+3. **Realtime** - Enable on tables: `cms_hero`, `cms_statistics`, `cms_features`, `cms_services`, `cms_testimonials`, `cms_portfolio_items`, `cms_team_members`, `cms_faqs`
+4. **Storage** - Create buckets: `assets`, `avatars`, `deliverables`, `source-files`
+5. **RLS** - Configure Row Level Security policies
 
 ---
 
@@ -99,15 +131,15 @@
 | **Multi-Role Access** | ADMIN, EDITOR, QA, CLIENT, DEVELOPER, GUEST roles |
 | **Dynamic CMS** | Edit all homepage content via Prisma Studio |
 | **3D Hero Section** | Interactive React Three Fiber scene |
-| **Real-time Dashboard** | Live KPI tracking |
+| **Real-time Dashboard** | Live KPI tracking with Supabase |
 | **Wallet System** | Add funds, payments, transactions |
 | **Order Management** | Full CRUD with status tracking |
 | **Task Queue** | Editor job board, task claiming |
 | **Review System** | Client reviews, ratings |
 | **Support Tickets** | Help desk system |
-| **File Upload** | Asset management |
-| **Real-time Chat** | Messaging system |
-| **Realtime Indicator** | Shows SQLite/Supabase connection status |
+| **File Upload** | Supabase Storage + local fallback |
+| **Realtime Chat** | Supabase Realtime messaging |
+| **Realtime CMS** | Auto-refresh content on database changes |
 
 ---
 
