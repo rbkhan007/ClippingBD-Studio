@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireRole } from '@/lib/api-auth';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 60;
+
 // GET /api/portfolio - Get all portfolio items
 export async function GET(request: NextRequest) {
   try {

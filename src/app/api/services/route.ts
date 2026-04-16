@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth, requireRole } from '@/lib/api-auth';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 60;
+
 /**
  * GET /api/services
  * List all active services (public) or all services (admin)

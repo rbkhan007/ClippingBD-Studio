@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   // Security: Disable x-powered-by header
   poweredByHeader: false,
   
+  // Enable compression
+  compress: true,
+  
+  // Production optimizations
+  productionBrowserSourceMaps: false,
+  
   // Response headers
   async headers() {
     return [
@@ -72,6 +78,25 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Static assets caching
+      {
+        source: '/images/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, immutable',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
     ];
   },
   
@@ -84,6 +109,8 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    // Optimize package bundling
+    optimizePackageImports: ['lucide-react', 'framer-motion', '@radix-ui/react'],
   },
   
   // Redirects

@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+// Cache for 60 seconds for public CMS data
+export const dynamic = 'force-dynamic';
+export const revalidate = 60;
+
 export async function GET() {
   try {
     const data = await db.cmsHero.findMany({
