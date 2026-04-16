@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppSettings } from '@/store/app-settings';
-import { isRealtimeEnabled } from '@/lib/supabase';
+import { isRealtimeEnabled, isSupabaseConfigured } from '@/lib/supabase';
 
 export function RealtimeIndicator() {
   const [isConnected, setIsConnected] = useState(false);
@@ -12,16 +12,19 @@ export function RealtimeIndicator() {
   const { isLive } = useAppSettings();
 
   useEffect(() => {
+    const supabaseConfigured = isSupabaseConfigured();
     const realtimeEnabled = isRealtimeEnabled();
-    setIsConnected(realtimeEnabled && isLive);
+    setIsConnected(supabaseConfigured && isLive);
     setShowIndicator(true);
 
-    // Auto-hide after 3 seconds if not realtime (faster feedback)
-    if (!realtimeEnabled) {
+    // Auto-hide after 3 seconds if not connected (faster feedback)
+    if (!supabaseConfigured) {
       const timer = setTimeout(() => setShowIndicator(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [isLive]);
+
+  const isSupabase = isSupabaseConfigured();
 
   return (
     <AnimatePresence>
@@ -56,8 +59,8 @@ export function RealtimeIndicator() {
               </>
             ) : (
               <>
-                <WifiOff className="w-4 h-4 text-amber-400" />
-                <span className="text-xs text-amber-400 font-medium">SQLite Mode</span>
+                <Database className="w-4 h-4 text-amber-400" />
+                <span className="text-xs text-amber-400 font-medium">{isSupabase ? 'Supabase' : 'Offline'}</span>
               </>
             )}
           </div>
