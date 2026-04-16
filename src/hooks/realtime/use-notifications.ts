@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import type { Notification } from '@/types/database'
+import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase/client'
 
 interface UseNotificationsOptions {
   userId: string | undefined
@@ -12,6 +13,8 @@ export function useNotifications({ userId, onNewNotification }: UseNotifications
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
+
+  const supabase = isSupabaseConfigured() ? getSupabaseClient() : null
 
   // Fetch notifications via API
   const fetchNotifications = useCallback(async () => {
@@ -37,6 +40,42 @@ export function useNotifications({ userId, onNewNotification }: UseNotifications
       fetchNotifications()
     }
   }, [userId, fetchNotifications])
+
+  // Subscribe to realtime notifications
+  useEffect(() => {
+    if (!supabase || !userId) return
+
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `userId=eq.${userId}`
+      }, (payload) => {
+        const newNotification = payload.new as Notification
+        setNotifications(prev => [newNotification, ...prev])
+        setUnreadCount(prev => prev + 1)
+        onNewNotification?.(newNotification)
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `userId=eq.${userId}`
+      }, (payload) => {
+        const updated = payload.new as Notification
+        setNotifications(prev => prev.map(n => n.id === updated.id ? updated : n))
+        if (payload.old?.isRead !== updated.isRead) {
+          setUnreadCount(prev => updated.isRead ? Math.max(0, prev - 1) : prev + 1)
+        }
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase, userId, onNewNotification])
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
