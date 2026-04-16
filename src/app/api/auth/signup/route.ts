@@ -90,49 +90,28 @@ export async function POST(request: NextRequest) {
     // Admin/Developer can change role after approval
     const userRole = 'CLIENT';
 
-    // Create user in database with PENDING status
-    // User must be approved by Admin/Developer before they can log in
+    // Auto-approve clients for production - they can login immediately
+    // Admin/Developer will need manual approval
+    const userStatus = 'ACTIVE';
+
+    // Create user in database with ACTIVE status for clients
     const user = await db.user.create({
       data: {
         email: email.toLowerCase(),
         name,
         password: hashedPassword,
         role: userRole,
-        status: 'PENDING', // Requires admin approval
+        status: userStatus,
         walletBalance: 0,
         currency: 'USD',
+        approvedAt: new Date(),
       },
     });
 
-    // Create notification for admins about new pending user
-    const admins = await db.user.findMany({
-      where: {
-        OR: [
-          { role: 'ADMIN' },
-          { role: 'DEVELOPER' },
-        ],
-        status: 'ACTIVE',
-      },
-    });
-
-    // Notify all admins about new user pending approval
-    if (admins.length > 0) {
-      await db.notification.createMany({
-        data: admins.map((admin) => ({
-          userId: admin.id,
-          type: 'SYSTEM',
-          title: 'New User Registration',
-          message: `New user "${name}" (${email}) is pending approval.`,
-          link: '/admin/users?status=PENDING',
-        })),
-      });
-    }
-
-    // Return success - but don't auto-login since user needs approval
+    // Return success - user can login immediately
     return NextResponse.json({
       success: true,
-      message: 'Your account has been created and is pending approval. You will receive an email once an administrator approves your account.',
-      requiresApproval: true,
+      message: 'Your account has been created successfully! You can now log in.',
       user: {
         id: user.id,
         email: user.email,
@@ -140,7 +119,7 @@ export async function POST(request: NextRequest) {
         role: user.role,
         status: user.status,
       },
-    });
+    }, { status: 201 });
   } catch (error) {
     console.error('Signup error:', error);
 
