@@ -1,0 +1,784 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                String                @id @default(cuid())
+  email             String                @unique
+  password          String
+  name              String?
+  avatar            String?
+  role              String                @default("CLIENT")
+  status            String                @default("PENDING")
+  walletBalance     Float                 @default(0)
+  currency          String                @default("USD")
+  preferredCurrency String                @default("USD")
+  stripeCustomerId  String?
+  approvedBy        String?
+  approvedAt        DateTime?
+  rejectionReason   String?
+  phone             String?
+  company           String?
+  country           String?
+  timezone          String                @default("Asia/Dhaka")
+  impersonating     String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  lastLoginAt       DateTime?
+  assets            Asset[]
+  sentMessages      ChatMessage[]         @relation("SentMessages")
+  chatRooms         ChatRoomParticipant[]
+  notifications     Notification[]
+  orders            Order[]
+  payouts           Payout[]
+  reviews           QAReview[]
+  tickets           SupportTicket[]
+  tasks             Task[]
+  transactions      Transaction[]
+
+  @@index([status])
+  @@index([role])
+  @@map("users")
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  token      String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  deviceInfo String?
+  ipAddress  String?
+
+  @@map("sessions")
+}
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  type        String   @default("TEXT")
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  category    String
+  description String
+  features    String
+  basePrice   Float
+  turnaround  Int
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  orders      Order[]
+
+  @@map("services")
+}
+
+model PricingTier {
+  id           String @id @default(cuid())
+  serviceId    String
+  minQuantity  Int
+  maxQuantity  Int
+  pricePerUnit Float
+  discount     Float  @default(0)
+
+  @@map("pricing_tiers")
+}
+
+model ServiceCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  image       String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("service_categories")
+}
+
+model Order {
+  id               String          @id @default(cuid())
+  orderNumber      String          @unique
+  clientId         String
+  serviceId        String
+  status           String          @default("DRAFT")
+  priority         String          @default("STANDARD")
+  title            String
+  description      String?
+  requirements     String?
+  quantity         Int             @default(1)
+  serviceType      String          @default("IMAGE")
+  baseAmount       Float
+  priorityBonus    Float           @default(0)
+  totalAmount      Float
+  isPaid           Boolean         @default(false)
+  deadline         DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  sourceFiles      String?
+  deliverableFiles String?
+  webRequirements  String?
+  deploymentUrl    String?
+  assets           Asset[]
+  chatRooms        ChatRoom[]
+  client           User            @relation(fields: [clientId], references: [id])
+  service          Service         @relation(fields: [serviceId], references: [id])
+  reviews          QAReview[]
+  tickets          SupportTicket[]
+  tasks            Task[]
+  websites         Website[]
+
+  @@map("orders")
+}
+
+model Task {
+  id            String     @id @default(cuid())
+  orderId       String
+  editorId      String?
+  status        String     @default("AVAILABLE")
+  department    String
+  claimedAt     DateTime?
+  submittedAt   DateTime?
+  deadline      DateTime?
+  createdAt     DateTime   @default(now())
+  payoutAmount  Float?
+  revisionCount Int        @default(0)
+  revisionNotes String?
+  reviews       QAReview[]
+  editor        User?      @relation(fields: [editorId], references: [id])
+  order         Order      @relation(fields: [orderId], references: [id])
+
+  @@map("tasks")
+}
+
+model QAReview {
+  id          String    @id @default(cuid())
+  taskId      String
+  orderId     String
+  qaId        String
+  status      String    @default("PENDING")
+  score       Int?
+  feedback    String?
+  annotations String?
+  reviewedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  order       Order     @relation(fields: [orderId], references: [id])
+  qa          User      @relation(fields: [qaId], references: [id])
+  task        Task      @relation(fields: [taskId], references: [id])
+
+  @@map("qa_reviews")
+}
+
+model Website {
+  id          String       @id @default(cuid())
+  orderId     String
+  name        String
+  domain      String?
+  status      String       @default("DRAFT")
+  framework   String       @default("nextjs")
+  repoUrl     String?
+  previewUrl  String?
+  liveUrl     String?
+  config      String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deployedAt  DateTime?
+  deployments Deployment[]
+  order       Order        @relation(fields: [orderId], references: [id])
+
+  @@map("websites")
+}
+
+model Deployment {
+  id         String    @id @default(cuid())
+  websiteId  String
+  status     String    @default("PENDING")
+  version    String
+  logs       String?
+  deployedAt DateTime?
+  createdAt  DateTime  @default(now())
+  deployedBy String?
+  website    Website   @relation(fields: [websiteId], references: [id])
+
+  @@map("deployments")
+}
+
+model Asset {
+  id           String   @id @default(cuid())
+  userId       String
+  orderId      String?
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  bucket       String
+  path         String
+  url          String
+  isPublic     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  order        Order?   @relation(fields: [orderId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@map("assets")
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  userId        String
+  type          String
+  amount        Float
+  currency      String   @default("USD")
+  status        String   @default("PENDING")
+  paymentMethod String?
+  stripeId      String?
+  description   String?
+  metadata      String?
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@map("transactions")
+}
+
+model Payout {
+  id          String    @id @default(cuid())
+  editorId    String
+  amount      Float
+  status      String    @default("PENDING")
+  periodStart DateTime
+  periodEnd   DateTime
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+  editor      User      @relation(fields: [editorId], references: [id])
+
+  @@map("payouts")
+}
+
+model SupportTicket {
+  id          String          @id @default(cuid())
+  clientId    String
+  orderId     String?
+  subject     String
+  description String
+  status      String          @default("OPEN")
+  priority    String          @default("NORMAL")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  resolvedAt  DateTime?
+  client      User            @relation(fields: [clientId], references: [id])
+  order       Order?          @relation(fields: [orderId], references: [id])
+  messages    TicketMessage[]
+
+  @@map("support_tickets")
+}
+
+model TicketMessage {
+  id          String        @id @default(cuid())
+  ticketId    String
+  senderId    String
+  message     String
+  attachments String?
+  createdAt   DateTime      @default(now())
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id])
+
+  @@map("ticket_messages")
+}
+
+model ChatRoom {
+  id            String                @id @default(cuid())
+  type          String
+  name          String?
+  orderId       String?
+  ticketId      String?
+  lastMessage   String?
+  lastMessageAt DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  messages      ChatMessage[]
+  participants  ChatRoomParticipant[]
+  order         Order?                @relation(fields: [orderId], references: [id])
+
+  @@map("chat_rooms")
+}
+
+model ChatRoomParticipant {
+  id       String   @id @default(cuid())
+  roomId   String
+  userId   String
+  joinedAt DateTime @default(now())
+  room     ChatRoom @relation(fields: [roomId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
+  @@map("chat_room_participants")
+}
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  roomId      String
+  senderId    String
+  content     String
+  attachments String?
+  isRead      Boolean  @default(false)
+  readBy      String?
+  createdAt   DateTime @default(now())
+  room        ChatRoom @relation(fields: [roomId], references: [id])
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+
+  @@map("chat_messages")
+}
+
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String
+  serviceType String
+  beforeImage String
+  afterImage  String
+  thumbnail   String?
+  isPublished Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("portfolio_items")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  type       String
+  entityType String?
+  entityId   String?
+  data       String?
+  userId     String?
+  createdAt  DateTime @default(now())
+
+  @@map("analytics_events")
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  name        String
+  role        String
+  company     String
+  content     String
+  rating      Int      @default(5)
+  avatar      String?
+  isPublished Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("testimonials")
+}
+
+model ClientReview {
+  id         String    @id @default(cuid())
+  name       String
+  email      String
+  company    String?
+  role       String?
+  content    String
+  rating     Int       @default(5)
+  avatar     String?
+  status     String    @default("PENDING")
+  reviewedAt DateTime?
+  reviewedBy String?
+  reviewNote String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  sortOrder  Int       @default(0)
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("client_reviews")
+}
+
+model TeamMember {
+  id          String   @id @default(cuid())
+  name        String
+  role        String
+  bio         String?
+  avatar      String?
+  socialLinks String?
+  isPublished Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("team_members")
+}
+
+model PartnerSite {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  logo        String?
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("partner_sites")
+}
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  enabled     Boolean  @default(false)
+  rollout     Int      @default(100)
+  updatedAt   DateTime @updatedAt
+
+  @@map("feature_flags")
+}
+
+model CMSPage {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  content         String
+  excerpt         String?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  featuredImage   String?
+  isPublished     Boolean   @default(false)
+  isHomePage      Boolean   @default(false)
+  authorId        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  publishedAt     DateTime?
+
+  @@map("cms_pages")
+}
+
+model BlogPost {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  content         String
+  excerpt         String?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  featuredImage   String?
+  category        String
+  tags            String?
+  authorId        String?
+  authorName      String?
+  isPublished     Boolean   @default(false)
+  isFeatured      Boolean   @default(false)
+  viewCount       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  publishedAt     DateTime?
+
+  @@map("blog_posts")
+}
+
+model FAQItem {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String
+  category    String
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("faq_items")
+}
+
+model PaymentGateway {
+  id               String   @id @default(cuid())
+  provider         String
+  displayName      String
+  isEnabled        Boolean  @default(false)
+  publicKey        String?
+  secretKey        String?
+  webhookSecret    String?
+  merchantId       String?
+  currency         String   @default("USD")
+  additionalConfig String?
+  description      String?
+  logoUrl          String?
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([provider])
+  @@index([isEnabled])
+  @@map("payment_gateways")
+}
+
+model ExchangeRate {
+  id           String   @id @default(cuid())
+  fromCurrency String
+  toCurrency   String
+  rate         Float
+  source       String?
+  updatedAt    DateTime @updatedAt
+
+  @@unique([fromCurrency, toCurrency])
+  @@map("exchange_rates")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  company   String?
+  phone     String?
+  status    String   @default("PENDING")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CmsGlobalSettings {
+  id             String   @id @default(cuid())
+  siteName       String   @default("ClippingBD Studio")
+  logoUrl        String?
+  faviconUrl     String?
+  tagline        String?
+  description    String?
+  keywords       String?
+  author         String?
+  footerText     String?
+  primaryColor   String   @default("#00d4ff")
+  secondaryColor String   @default("#22d3ee")
+  accentColor    String   @default("#f97316")
+  updatedAt      DateTime @updatedAt
+  whatsappNumber String?
+
+  @@map("cms_global_settings")
+}
+
+model CmsHero {
+  id                 String   @id @default(cuid())
+  headline           String
+  subheadline        String
+  description        String?
+  ctaText            String   @default("Start Free Trial")
+  ctaUrl             String   @default("/auth")
+  secondaryCtaText   String?
+  secondaryCtaUrl    String?
+  backgroundImageUrl String?
+  backgroundVideoUrl String?
+  overlayOpacity     Float    @default(0.5)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("cms_hero")
+}
+
+model CmsStatistic {
+  id          String  @id @default(cuid())
+  label       String
+  value       String
+  suffix      String?
+  prefix      String?
+  icon        String?
+  description String?
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
+  @@map("cms_statistics")
+}
+
+model CmsFeature {
+  id          String  @id @default(cuid())
+  title       String
+  description String
+  icon        String?
+  link        String?
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
+  @@map("cms_features")
+}
+
+model CmsService {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String?
+  description String
+  category    String
+  priceFrom   Float?
+  turnaround  String?
+  icon        String?
+  imageUrl    String?
+  features    String?
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("cms_services")
+}
+
+model CmsPricingTier {
+  id          String  @id @default(cuid())
+  name        String
+  price       Float
+  period      String  @default("month")
+  description String?
+  features    String?
+  isPopular   Boolean @default(false)
+  ctaText     String  @default("Get Started")
+  ctaUrl      String  @default("/auth")
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
+  @@map("cms_pricing_tiers")
+}
+
+model CmsTestimonial {
+  id        String  @id @default(cuid())
+  name      String
+  role      String
+  company   String?
+  content   String
+  avatarUrl String?
+  rating    Int     @default(5)
+  order     Int     @default(0)
+  isActive  Boolean @default(true)
+
+  @@map("cms_testimonials")
+}
+
+model CmsPortfolioItem {
+  id             String  @id @default(cuid())
+  title          String
+  description    String?
+  beforeImageUrl String
+  afterImageUrl  String
+  thumbnailUrl   String?
+  serviceType    String
+  category       String?
+  clientName     String?
+  order          Int     @default(0)
+  isActive       Boolean @default(true)
+
+  @@map("cms_portfolio_items")
+}
+
+model CmsTeamMember {
+  id        String  @id @default(cuid())
+  name      String
+  role      String
+  bio       String?
+  avatarUrl String?
+  email     String?
+  linkedin  String?
+  twitter   String?
+  order     Int     @default(0)
+  isActive  Boolean @default(true)
+
+  @@map("cms_team_members")
+}
+
+model CmsFaq {
+  id       String  @id @default(cuid())
+  question String
+  answer   String
+  category String  @default("GENERAL")
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  @@map("cms_faqs")
+}
+
+model CmsPartner {
+  id          String  @id @default(cuid())
+  name        String
+  logoUrl     String?
+  websiteUrl  String?
+  description String?
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
+  @@map("cms_partners")
+}
+
+model CmsSocialLink {
+  id       String  @id @default(cuid())
+  platform String
+  url      String
+  icon     String?
+  isActive Boolean @default(true)
+  order    Int     @default(0)
+
+  @@map("cms_social_links")
+}
+
+model CmsContactInfo {
+  id       String  @id @default(cuid())
+  type     String
+  label    String
+  value    String
+  icon     String?
+  link     String?
+  isPublic Boolean @default(true)
+  order    Int     @default(0)
+
+  @@map("cms_contact_info")
+}
+
+model StaticData {
+  id          String   @id @default(cuid())
+  category    String
+  key         String
+  title       String?
+  subtitle    String?
+  content     String?
+  description String?
+  imageUrl    String?
+  icon        String?
+  link        String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  metadata    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([category, key])
+  @@index([category])
+  @@index([isActive])
+  @@map("static_data")
+}
