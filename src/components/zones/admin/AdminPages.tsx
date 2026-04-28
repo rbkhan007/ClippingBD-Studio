@@ -525,7 +525,8 @@ export function AdminDashboard() {
 
       {/* Services Section */}
       <div className="mt-12">
-              {/* User Summary Cards */}
+        <div className="space-y-6">
+          {/* User Summary Cards */}
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                   { label: 'Total Users', value: '1,803', change: '+18.5%', icon: Users },
@@ -642,8 +643,7 @@ export function AdminDashboard() {
                 </Card>
 
           {/* Service Performance Report */}
-          <TabsContent value="services">
-            <div className="space-y-6">
+          <div className="space-y-6">
               {/* Service Summary Cards */}
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
@@ -725,7 +725,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </div>
         </div>
       </div>
     </div>
