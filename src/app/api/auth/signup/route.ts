@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, name } = validationResult.data;
+    const { email, password, name, role } = validationResult.data;
 
     // Check if user already exists
     const existingUser = await db.user.findUnique({
@@ -86,13 +86,11 @@ export async function POST(request: NextRequest) {
     // Hash password with bcrypt
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Determine user role - new signups are always CLIENT
-    // Admin/Developer can change role after approval
-    const userRole = 'CLIENT';
-
-    // Auto-approve clients for production - they can login immediately
-    // Admin/Developer will need manual approval
-    const userStatus = 'ACTIVE';
+    // Determine user role - allow CLIENT, EDITOR, QA from signup
+    // Only CLIENT role is auto-approved
+    // EDITOR and QA require manual approval
+    const userRole = role || 'CLIENT';
+    const userStatus = userRole === 'CLIENT' ? 'ACTIVE' : 'PENDING';
 
     // Create user in database with ACTIVE status for clients
     const user = await db.user.create({
@@ -104,21 +102,25 @@ export async function POST(request: NextRequest) {
         status: userStatus,
         walletBalance: 0,
         currency: 'USD',
-        approvedAt: new Date(),
+        approvedAt: userStatus === 'ACTIVE' ? new Date() : null,
       },
     });
 
-    // Return success - user can login immediately
+    // Return success - client can login immediately, EDITOR/QA need approval
+    const needsApproval = userRole !== 'CLIENT';
     return NextResponse.json({
       success: true,
-      message: 'Your account has been created successfully! You can now log in.',
-      user: {
+      message: needsApproval 
+        ? 'Your account has been created! You will be notified once approved.' 
+        : 'Your account has been created successfully! You can now log in.',
+      needsApproval,
+      user: userStatus === 'ACTIVE' ? {
         id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,
         status: user.status,
-      },
+      } : null,
     }, { status: 201 });
   } catch (error) {
     console.error('Signup error:', error);

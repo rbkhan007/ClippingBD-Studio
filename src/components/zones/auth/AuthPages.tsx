@@ -380,7 +380,7 @@ function SignupForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'CLIENT' | 'PARTNER'>('CLIENT');
+  const [role, setRole] = useState<'CLIENT' | 'EDITOR' | 'QA'>('CLIENT');
   const [terms, setTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -431,7 +431,7 @@ function SignupForm() {
           password,
           confirmPassword,
           terms,
-          role: role === 'PARTNER' ? 'EDITOR' : 'CLIENT',
+          role,
         }),
       });
 
@@ -506,30 +506,42 @@ function SignupForm() {
 
         <div className="space-y-2">
           <Label>Account Type</Label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => setRole('CLIENT')}
-              className={`p-4 rounded-lg border text-left transition-all ${
+              className={`p-3 rounded-lg border text-center transition-all ${
                 role === 'CLIENT'
                   ? 'border-emerald-500/50 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
                   : 'border-border hover:border-emerald-500/30 hover:bg-accent'
               }`}
             >
-              <p className="font-medium">Client</p>
-              <p className="text-xs text-muted-foreground">Order editing services</p>
+              <p className="font-medium text-sm">Client</p>
+              <p className="text-xs text-muted-foreground">Orders</p>
             </button>
             <button
               type="button"
-              onClick={() => setRole('PARTNER')}
-              className={`p-4 rounded-lg border text-left transition-all ${
-                role === 'PARTNER'
+              onClick={() => setRole('EDITOR')}
+              className={`p-3 rounded-lg border text-center transition-all ${
+                role === 'EDITOR'
                   ? 'border-emerald-500/50 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
                   : 'border-border hover:border-emerald-500/30 hover:bg-accent'
               }`}
             >
-              <p className="font-medium">Partner</p>
-              <p className="text-xs text-muted-foreground">Join as editor</p>
+              <p className="font-medium text-sm">Editor</p>
+              <p className="text-xs text-muted-foreground">Tasks</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('QA')}
+              className={`p-3 rounded-lg border text-center transition-all ${
+                role === 'QA'
+                  ? 'border-emerald-500/50 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
+                  : 'border-border hover:border-emerald-500/30 hover:bg-accent'
+              }`}
+            >
+              <p className="font-medium text-sm">QA</p>
+              <p className="text-xs text-muted-foreground">Review</p>
             </button>
           </div>
         </div>
