@@ -147,9 +147,6 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         
-        {/* Preload critical CMS data */}
-        <link rel="preload" href="/api/cms/hero" as="fetch" crossOrigin="anonymous" />
-        
         {/* Theme initialization script - prevents flash */}
         <script
           dangerouslySetInnerHTML={{

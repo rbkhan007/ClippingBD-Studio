@@ -81,15 +81,22 @@ export const useAppStore = create<AppState>()(
         }
       },
       
-      logout: () => set({ 
-        user: null, 
-        isAuthenticated: false,
-        currentPage: '/',
-        notifications: [],
-        unreadNotifications: 0,
-        chatRooms: [],
-        unreadMessages: {},
-      }),
+      logout: async () => {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        } catch (error) {
+          console.error('Logout API error:', error);
+        }
+        set({ 
+          user: null, 
+          isAuthenticated: false,
+          currentPage: '/',
+          notifications: [],
+          unreadNotifications: 0,
+          chatRooms: [],
+          unreadMessages: {},
+        });
+      },
       
       setCurrentPage: (page) => set({ currentPage: page }),
       

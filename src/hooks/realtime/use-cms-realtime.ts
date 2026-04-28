@@ -49,8 +49,7 @@ function subscribeToTable(
   }
 
   try {
-    const channel = supabase
-      .channel(`realtime-${tableName}-${Date.now()}`)
+    const channel = supabase.channel(`realtime-${tableName}`)
       .on(
         'postgres_changes',
         {
@@ -62,10 +61,11 @@ function subscribeToTable(
           console.log(`[Realtime] Change detected in ${tableName}, refreshing...`);
           onUpdate();
         }
-      )
-      .subscribe((status) => {
-        console.log(`[Realtime] Subscribed to ${tableName}:`, status);
-      });
+      );
+
+    channel.subscribe((status) => {
+      console.log(`[Realtime] Subscribed to ${tableName}:`, status);
+    });
 
     return () => {
       supabase.removeChannel(channel);
