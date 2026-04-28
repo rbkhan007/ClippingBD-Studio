@@ -6,7 +6,6 @@ import { useAppStore } from '@/store/app-store';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Logo } from '@/components/Logo';
-import { RealtimeIndicator } from '@/components/ui/realtime-indicator';
 
 // Empty subscription for hydration
 const emptySubscribe = () => () => {};
@@ -48,6 +47,12 @@ const ClippingPathServicePage = lazy(() => import('@/components/zones/public/Ser
 const ImageServicePage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.ImageServicePage })));
 const VideoServicePage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.VideoServicePage })));
 const AIServicePage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.AIServicePage })));
+
+// Home page component - uses CMS content internally
+function HomePageComponent() {
+  return <HomePage />;
+}
+
 const WebServicePage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.WebServicePage })));
 const PricingPage = lazy(() => import('@/components/zones/public/PricingPage').then(m => ({ default: m.PricingPage })));
 const PortfolioPage = lazy(() => import('@/components/zones/public/PortfolioPage').then(m => ({ default: m.PortfolioPage })));
@@ -72,7 +77,7 @@ function PageRouter({ currentPage, isAuthenticated, user }: {
 }) {
   // Public pages
   if (currentPage === '/' || currentPage === '') {
-    return <HomePage />;
+    return <HomePageComponent />;
   }
   
   // Services - Individual pages with specific categories
@@ -260,9 +265,6 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Realtime Indicator */}
-      <RealtimeIndicator />
-      
       {/* Auto-hiding Navbar */}
       <Navbar />
       

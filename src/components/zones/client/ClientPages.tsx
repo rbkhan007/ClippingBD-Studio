@@ -654,6 +654,8 @@ export function OrderBuilder() {
   const { handleNavigate } = useNavigation();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [services, setServices] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     serviceType: 'IMAGE' as ServiceType,
     title: '',
@@ -664,6 +666,16 @@ export function OrderBuilder() {
     deadline: '',
   });
   const [dragActive, setDragActive] = useState(false);
+
+  // Fetch services on mount
+  useEffect(() => {
+    fetch('/api/services')
+      .then(res => res.json())
+      .then(data => {
+        if (data.services) setServices(data.services);
+      })
+      .catch(err => console.error('Failed to fetch services', err));
+  }, []);
 
   const steps = [
     { number: 1, title: 'Service Type', icon: Folder },
@@ -752,10 +764,56 @@ export function OrderBuilder() {
 
   const handleSubmit = async () => {
     setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setLoading(false);
-    // Would redirect to projects page
+    setError(null);
+
+    try {
+      // Find a service matching the selected serviceType
+      const serviceMap: Record<string, string> = {
+        'IMAGE': 'image',
+        'VIDEO': 'video',
+        'AI': 'ai',
+        'WEB': 'web',
+      };
+      const categorySlug = serviceMap[formData.serviceType] || 'image';
+
+      // Find a service that matches this category
+      const matchingService = services.find((s: any) => s.category?.toLowerCase() === categorySlug);
+      if (!matchingService) {
+        throw new Error(`No service found for ${formData.serviceType}. Please contact support.`);
+      }
+
+      // Build order payload
+      const orderPayload: Record<string, unknown> = {
+        title: formData.title,
+        description: formData.description,
+        quantity: formData.quantity,
+        priority: formData.priority,
+        serviceId: matchingService.id,
+        deadline: formData.deadline || null,
+      };
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(orderPayload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create order');
+      }
+
+      // Order created successfully
+      // Show success and redirect to projects page
+      handleNavigate('/projects');
+    } catch (err: any) {
+      console.error('Order creation error:', err);
+      setError(err.message || 'Failed to create order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const canProceed = () => {
@@ -1106,6 +1164,16 @@ export function OrderBuilder() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Error message */}
+            {error && (
+              <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 mb-6">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{error}</span>
+                </div>
+              </div>
+            )}
 
             {/* Navigation */}
             <div className="flex justify-between mt-8 pt-6 border-t border-border">

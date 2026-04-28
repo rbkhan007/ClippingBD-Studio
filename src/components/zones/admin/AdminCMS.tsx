@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText, Plus, Edit, Trash2, Eye, EyeOff, Search, Filter,
   Save, X, Upload, Globe, Clock, User, Tag, Image as ImageIcon,
-  ChevronRight, ArrowUp, ArrowDown, Check, AlertCircle, RefreshCw
+  ChevronRight, ArrowUp, ArrowDown, Check, AlertCircle, RefreshCw,
+  Wifi, WifiOff
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,6 +20,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAppStore } from '@/store/app-store';
+import { useRealtimeAdmin, RealtimeStatus } from '@/hooks/useRealtimeAdmin';
+import { isSupabaseConfigured } from '@/lib/supabase';
 
 // Types
 interface CMSPage {
@@ -750,6 +753,39 @@ function FAQForm({ item, onSave, onCancel }: { item: FAQItem | null; onSave: (da
 export function AdminCMS() {
   const { user } = useAppStore();
   const [activeTab, setActiveTab] = useState('pages');
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [isRealtimeEnabled, setIsRealtimeEnabled] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    setIsRealtimeEnabled(isSupabaseConfigured());
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    setLastRefresh(new Date());
+    setRefreshKey(prev => prev + 1);
+  }, []);
+
+  useRealtimeAdmin([
+    {
+      table: 'cms_pages',
+      onInsert: () => handleRefresh(),
+      onUpdate: () => handleRefresh(),
+      onDelete: () => handleRefresh(),
+    },
+    {
+      table: 'cms_blogs',
+      onInsert: () => handleRefresh(),
+      onUpdate: () => handleRefresh(),
+      onDelete: () => handleRefresh(),
+    },
+    {
+      table: 'cms_faqs',
+      onInsert: () => handleRefresh(),
+      onUpdate: () => handleRefresh(),
+      onDelete: () => handleRefresh(),
+    },
+  ]);
 
   return (
     <div className="py-8">
@@ -757,14 +793,35 @@ export function AdminCMS() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold mb-1">Content Management</h1>
-            <p className="text-muted-foreground">Manage pages, blog posts, and FAQ items</p>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold mb-1">Content Management</h1>
+              {isRealtimeEnabled ? (
+                <Badge variant="outline" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                  <Wifi className="w-3 h-3 mr-1" />
+                  Live
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                  <WifiOff className="w-3 h-3 mr-1" />
+                  Offline
+                </Badge>
+              )}
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Last sync: {lastRefresh.toLocaleTimeString()} • Changes reflect immediately on website
+            </p>
           </div>
-          <RoleAccessIndicator requiredRole="ADMIN" currentRole={user?.role || 'GUEST'} />
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+            <RoleAccessIndicator requiredRole="ADMIN" currentRole={user?.role || 'GUEST'} />
+          </div>
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" key={refreshKey}>
           <TabsList className="bg-muted/30 dark:bg-white/5 border border-border">
             <TabsTrigger value="pages" className="data-[state=active]:bg-emerald-500/30 dark:bg-emerald-500/20 data-[state=active]:text-emerald-400">
               <FileText className="w-4 h-4 mr-2" />

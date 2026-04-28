@@ -35,8 +35,8 @@ const portfolioItems = [
     description: 'Clean background removal for online store product catalog',
     client: 'Fashion Brand',
     turnaround: '24h',
-    beforeGradient: 'from-slate-600 to-slate-800',
-    afterGradient: 'from-emerald-500 to-teal-600',
+    beforeImageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&sat=-100&con=-10',
+    afterImageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
   },
   {
     id: 2,
@@ -46,8 +46,8 @@ const portfolioItems = [
     description: 'Professional skin retouching and color grading for magazine',
     client: 'Style Magazine',
     turnaround: '48h',
-    beforeGradient: 'from-amber-700 to-orange-800',
-    afterGradient: 'from-teal-500 to-cyan-600',
+    beforeImageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=600&fit=crop',
+    afterImageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=600&fit=crop&sat=-100',
   },
   {
     id: 3,
@@ -57,8 +57,8 @@ const portfolioItems = [
     description: 'Cinematic color grading for commercial advertisement',
     client: 'Tech Startup',
     turnaround: '72h',
-    beforeGradient: 'from-blue-700 to-indigo-800',
-    afterGradient: 'from-cyan-500 to-blue-600',
+    beforeImageUrl: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&h=600&fit=crop',
+    afterImageUrl: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&h=600&fit=crop&sat=-100',
   },
   {
     id: 4,
@@ -68,8 +68,8 @@ const portfolioItems = [
     description: 'Precise clipping for complex jewelry pieces with reflection',
     client: 'Luxury Jewelry',
     turnaround: '36h',
-    beforeGradient: 'from-purple-700 to-violet-800',
-    afterGradient: 'from-emerald-500 to-green-600',
+    beforeImageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=600&fit=crop',
+    afterImageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=600&fit=crop&sat=-100',
   },
   {
     id: 5,
@@ -79,8 +79,8 @@ const portfolioItems = [
     description: 'AI-powered upscaling and restoration of vintage photo',
     client: 'Family Archive',
     turnaround: '12h',
-    beforeGradient: 'from-gray-600 to-gray-800',
-    afterGradient: 'from-blue-500 to-indigo-600',
+    beforeImageUrl: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&h=600&fit=crop',
+    afterImageUrl: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&h=600&fit=crop&sat=-100',
   },
   {
     id: 6,
@@ -90,8 +90,8 @@ const portfolioItems = [
     description: 'Engaging short-form content creation for Instagram',
     client: 'Lifestyle Brand',
     turnaround: '24h',
-    beforeGradient: 'from-pink-700 to-rose-800',
-    afterGradient: 'from-teal-500 to-emerald-600',
+    beforeImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
+    afterImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop&sat=-100',
   },
   {
     id: 7,
@@ -101,8 +101,8 @@ const portfolioItems = [
     description: 'Multiple background options for A/B testing',
     client: 'E-commerce Store',
     turnaround: '18h',
-    beforeGradient: 'from-slate-600 to-zinc-800',
-    afterGradient: 'from-emerald-500 to-teal-600',
+    beforeImageUrl: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&h=600&fit=crop',
+    afterImageUrl: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&h=600&fit=crop&sat=-100',
   },
   {
     id: 8,
@@ -112,8 +112,8 @@ const portfolioItems = [
     description: 'HDR blending and sky replacement for property listing',
     client: 'Real Estate Agency',
     turnaround: '24h',
-    beforeGradient: 'from-sky-700 to-blue-800',
-    afterGradient: 'from-cyan-500 to-sky-600',
+    beforeImageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=600&fit=crop',
+    afterImageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=600&fit=crop&sat=-100',
   },
   {
     id: 9,
@@ -123,8 +123,8 @@ const portfolioItems = [
     description: 'AI-powered restoration of damaged vintage photograph',
     client: 'Private Client',
     turnaround: '24h',
-    beforeGradient: 'from-amber-800 to-yellow-900',
-    afterGradient: 'from-emerald-500 to-teal-600',
+    beforeImageUrl: 'https://images.unsplash.com/photo-1491553895911-0055uj8d53fa?w=800&h=600&fit=crop',
+    afterImageUrl: 'https://images.unsplash.com/photo-1491553895911-0055uj8d53fa?w=800&h=600&fit=crop&sat=-100',
   },
 ];
 
@@ -386,7 +386,7 @@ function FullScreenSlider({
   isOpen, 
   onClose 
 }: { 
-  item: (typeof portfolioItems[0] & { beforeImageUrl?: string; afterImageUrl?: string }) | null; 
+  item: (typeof portfolioItems[0] & { beforeImageUrl?: string; afterImageUrl?: string; beforeGradient?: string; afterGradient?: string }) | null; 
   isOpen: boolean; 
   onClose: () => void;
 }) {
@@ -399,7 +399,7 @@ function FullScreenSlider({
       <DialogContent className="max-w-4xl w-full h-[80vh] p-0 bg-black border-border overflow-hidden">
         <div className="relative w-full h-full">
           {/* After */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${item.afterGradient} flex items-center justify-center`}>
+          <div className={`absolute inset-0 bg-gradient-to-br ${item.afterGradient || 'from-green-400 to-emerald-600'} flex items-center justify-center`}>
             {item.afterImageUrl ? (
               <img src={item.afterImageUrl} alt="After" className="absolute inset-0 w-full h-full object-contain" />
             ) : (
@@ -412,7 +412,7 @@ function FullScreenSlider({
 
           {/* Before */}
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${item.beforeGradient} flex items-center justify-center`}
+            className={`absolute inset-0 bg-gradient-to-br ${item.beforeGradient || 'from-red-400 to-orange-600'} flex items-center justify-center`}
             style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
           >
             {item.beforeImageUrl ? (

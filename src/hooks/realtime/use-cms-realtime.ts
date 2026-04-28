@@ -1,299 +1,162 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { isRealtimeEnabled, getSupabaseClient } from '@/lib/supabase/client';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 
-// API endpoints mapping
-const apiEndpoints: Record<string, string> = {
-  cms_hero: '/api/cms/hero',
-  cms_statistics: '/api/cms/statistics',
-  cms_features: '/api/cms/features',
-  cms_services: '/api/cms/services',
-  cms_pricing_tiers: '/api/cms/pricing-tiers',
-  cms_testimonials: '/api/cms/testimonials',
-  cms_portfolio_items: '/api/cms/portfolio',
-  cms_team_members: '/api/cms/team',
-  cms_faqs: '/api/cms/faqs',
-  cms_partners: '/api/cms/partners',
-  cms_social_links: '/api/cms/social-links',
-  cms_contact_info: '/api/cms/contact-info',
-  cms_global_settings: '/api/cms/settings',
+const supabaseUrl = typeof window !== 'undefined' 
+  ? (window as any).__NEXT_DATA__?.props?.pageProps?.supabaseUrl || process.env.NEXT_PUBLIC_SUPABASE_URL
+  : process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+const supabaseAnonKey = typeof window !== 'undefined'
+  ? (window as any).__NEXT_DATA__?.props?.pageProps?.supabaseAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+function getSupabaseClient() {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.log('[Realtime] Supabase not configured');
+    return null;
+  }
+  try {
+    return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  } catch (error) {
+    console.error('[Realtime] Failed to create client:', error);
+    return null;
+  }
+}
+
+function isSupabaseConfigured(): boolean {
+  return !!(supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http'));
+}
+
+const supabaseTableMap: Record<string, string> = {
+  'hero': 'cms_hero',
+  'statistics': 'cms_statistics',
+  'features': 'cms_features',
+  'services': 'cms_services',
+  'pricing-tiers': 'cms_pricing_tiers',
+  'testimonials': 'cms_testimonials',
+  'portfolio': 'cms_portfolio_items',
+  'team': 'cms_team_members',
+  'faqs': 'cms_faqs',
+  'partners': 'cms_partners',
+  'social-links': 'cms_social_links',
+  'contact-info': 'cms_contact_info',
+  'settings': 'cms_global_settings',
 };
 
-function fetchWithRealtime<T>(endpoint: string, setData: (data: T) => void) {
-  const fetchData = () => {
-    fetch(endpoint)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success && result.data) {
-          setData(result.data);
-        }
-      })
-      .catch(console.error);
-  };
+const apiEndpoints: Record<string, string> = {
+  hero: '/api/cms/hero',
+  statistics: '/api/cms/statistics',
+  features: '/api/cms/features',
+  services: '/api/cms/services',
+  'pricing-tiers': '/api/cms/pricing-tiers',
+  testimonials: '/api/cms/testimonials',
+  portfolio: '/api/cms/portfolio',
+  team: '/api/cms/team',
+  faqs: '/api/cms/faqs',
+  partners: '/api/cms/partners',
+  'social-links': '/api/cms/social-links',
+  'contact-info': '/api/cms/contact-info',
+  settings: '/api/cms/settings',
+};
 
-  fetchData();
+async function fetchApiData(endpoint: string) {
+  try {
+    const res = await fetch(endpoint);
+    const data = await res.json();
+    return data.success ? data.data : [];
+  } catch (error) {
+    console.error(`[Realtime] Fetch error for ${endpoint}:`, error);
+    return [];
+  }
+}
 
-  // Subscribe to Supabase realtime changes if configured
-  if (isRealtimeEnabled()) {
-    const tableName = endpoint.replace('/api/cms/', '').replace('/api/', '');
-    const supabaseTableMap: Record<string, string> = {
-      'cms_hero': 'cms_hero',
-      'cms_statistics': 'cms_statistics',
-      'cms_features': 'cms_features',
-      'cms_services': 'cms_services',
-      'cms_pricing_tiers': 'cms_pricing_tiers',
-      'cms_testimonials': 'cms_testimonials',
-      'cms_portfolio': 'cms_portfolio_items',
-      'cms_team': 'cms_team_members',
-      'cms_faqs': 'cms_faqs',
-      'cms_partners': 'cms_partners',
-      'cms_social-links': 'cms_social_links',
-      'cms_contact-info': 'cms_contact_info',
-      'cms_settings': 'cms_global_settings',
-    };
-
-    const table = supabaseTableMap[tableName];
-    const supabase = getSupabaseClient();
-    if (table && supabase) {
-      const channel = supabase
-        .channel(`cms-${tableName}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
-          fetchData();
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
+function subscribeToTable(
+  tableName: string,
+  onUpdate: () => void
+): () => void {
+  const supabase = getSupabaseClient();
+  
+  if (!supabase || !tableName) {
+    return () => {};
   }
 
-  return () => {};
-}
-
-export function useCmsHero() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_hero)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsStatistics() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_statistics)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsFeatures() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_features)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsServices() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_services)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsPricingTiers() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_pricing_tiers)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsTestimonials() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_testimonials)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsPortfolio() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_portfolio_items)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsTeam() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_team_members)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsFaqs(category?: string) {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_faqs)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) {
-          const filtered = category 
-            ? result.data.filter((f: any) => f.category === category)
-            : result.data;
-          setData(filtered);
+  try {
+    const channel = supabase
+      .channel(`realtime-${tableName}-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: tableName,
+        },
+        () => {
+          console.log(`[Realtime] Change detected in ${tableName}, refreshing...`);
+          onUpdate();
         }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [category]);
+      )
+      .subscribe((status) => {
+        console.log(`[Realtime] Subscribed to ${tableName}:`, status);
+      });
 
-  return { data, loading, error: null, refetch: () => {} };
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  } catch (error) {
+    console.error(`[Realtime] Subscribe error for ${tableName}:`, error);
+    return () => {};
+  }
 }
 
-export function useCmsSettings() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+function createUseCmsData(tableKey: string) {
+  return function useCmsData() {
+    const [data, setData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const channelCleanupRef = useRef<(() => void) | null>(null);
+    const endpoint = apiEndpoints[tableKey];
+    const supabaseTable = supabaseTableMap[tableKey];
 
-  useEffect(() => {
-    fetch(apiEndpoints.cms_global_settings)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+    const fetchData = useCallback(async () => {
+      setLoading(true);
+      const result = await fetchApiData(endpoint);
+      setData(result);
+      setLoading(false);
+    }, [endpoint]);
 
-  return { data, loading, error: null, refetch: () => {} };
+    useEffect(() => {
+      fetchData();
+
+      if (isSupabaseConfigured() && supabaseTable) {
+        channelCleanupRef.current = subscribeToTable(supabaseTable, fetchData);
+      }
+
+      return () => {
+        if (channelCleanupRef.current) {
+          channelCleanupRef.current();
+        }
+      };
+    }, [fetchData, supabaseTable]);
+
+    return { data, loading, error, refetch: fetchData };
+  };
 }
 
-export function useCmsContactInfo() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export const useCmsHero = createUseCmsData('hero');
+export const useCmsStatistics = createUseCmsData('statistics');
+export const useCmsFeatures = createUseCmsData('features');
+export const useCmsServices = createUseCmsData('services');
+export const useCmsPricingTiers = createUseCmsData('pricing-tiers');
+export const useCmsTestimonials = createUseCmsData('testimonials');
+export const useCmsPortfolio = createUseCmsData('portfolio');
+export const useCmsTeam = createUseCmsData('team');
+export const useCmsFaqs = createUseCmsData('faqs');
+export const useCmsPartners = createUseCmsData('partners');
+export const useCmsSocialLinks = createUseCmsData('social-links');
+export const useCmsContactInfo = createUseCmsData('contact-info');
+export const useCmsSettings = createUseCmsData('settings');
 
-  useEffect(() => {
-    fetch(apiEndpoints.cms_contact_info)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsSocialLinks() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_social_links)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
-}
-
-export function useCmsPartners() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(apiEndpoints.cms_partners)
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) setData(result.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading, error: null, refetch: () => {} };
+export function isRealtimeConfigured() {
+  return isSupabaseConfigured();
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { GlobalErrorBoundary } from "@/components/layout/GlobalErrorBoundary";
 import { ThemeProvider } from "@/components/providers";
+import { WhatsAppFloating } from "@/components/ui/whatsapp-icon";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -130,14 +131,22 @@ verification: {
   },
 };
 
+import { Suspense } from 'react';
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
+    <html lang="en" suppressHydrationWarning className="light">
       <head>
+        {/* Resource Hints for Performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        
         {/* Theme initialization script - prevents flash */}
         <script
           dangerouslySetInnerHTML={{
@@ -145,7 +154,7 @@ export default function RootLayout({
               (function() {
                 try {
                   var stored = localStorage.getItem('clippingbd-theme');
-                  var theme = 'dark';
+                  var theme = 'light';
                   if (stored) {
                     var parsed = JSON.parse(stored);
                     if (parsed.state && parsed.state.theme) {
@@ -156,7 +165,7 @@ export default function RootLayout({
                   document.documentElement.classList.add(theme);
                   document.documentElement.style.colorScheme = theme;
                 } catch (e) {
-                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.add('light');
                 }
               })();
             `,
@@ -362,7 +371,7 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
@@ -370,6 +379,7 @@ export default function RootLayout({
             {children}
           </GlobalErrorBoundary>
           <Toaster position="top-right" richColors />
+          <WhatsAppFloating />
         </ThemeProvider>
       </body>
     </html>

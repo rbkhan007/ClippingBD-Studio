@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth, canAccessResource } from '@/lib/api-auth';
+import { checkRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/rate-limit';
 
 // GET /api/orders - List orders
 export async function GET(request: NextRequest) {
@@ -34,8 +35,14 @@ export async function GET(request: NextRequest) {
         skip: offset,
         orderBy: { createdAt: 'desc' },
         include: {
-          client: { select: { id: true, name: true, email: true, avatar: true } },
-          service: { select: { id: true, name: true, category: true } },
+          service: {
+            select: {
+              id: true,
+              name: true,
+              category: true,
+              basePrice: true,
+            },
+          },
         },
       }),
       db.order.count({ where }),
@@ -43,19 +50,33 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       orders,
-      pagination: { total, limit, offset, hasMore: offset + limit < total },
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total,
+      },
     });
   } catch (error) {
     console.error('Get orders error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch orders' },
       { status: 500 }
     );
   }
 }
 
-// POST /api/orders - Create order
+// POST /api/orders - Create new order
 export async function POST(request: NextRequest) {
+  // Rate limiting for order creation
+  const rateLimitResult = checkRateLimit(request, RATE_LIMIT_CONFIGS.order);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: rateLimitResult.message || 'Rate limit exceeded' },
+      { status: 429 }
+    );
+  }
+
   // Require authentication
   const authResult = await requireAuth(request);
   if (!authResult.authorized) {
@@ -85,17 +106,12 @@ export async function POST(request: NextRequest) {
     const orderCount = await db.order.count();
     const orderNumber = `ORD-${new Date().getFullYear()}-${String(orderCount + 1).padStart(3, '0')}`;
 
-    // Calculate pricing based on service
-    let basePrice = 0.20; // Default price per image
-    
-    if (serviceId) {
-      const service = await db.service.findUnique({ where: { id: serviceId } });
-      if (service) {
-        basePrice = service.basePrice;
-      }
-    }
+    // Get service pricing
+    const service = await db.service.findFirst({
+      where: { id: serviceId || 'service-clipping' },
+    });
 
-    const baseAmount = basePrice * quantity;
+    const baseAmount = service?.basePrice || 0.20;
     const priorityBonus = priority === 'NITRO' ? baseAmount * 0.25 : 
                           priority === 'EXPRESS' ? baseAmount * 0.15 : 0;
     const totalAmount = baseAmount + priorityBonus;
@@ -116,42 +132,19 @@ export async function POST(request: NextRequest) {
         isPaid: false,
         deadline: deadline ? new Date(deadline) : null,
       },
-      include: {
-        client: {
-          select: { id: true, name: true, email: true },
-        },
-      },
     });
-
-    // Find admin users and create notifications
-    const adminUsers = await db.user.findMany({
-      where: { role: { in: ['ADMIN', 'DEVELOPER'] }, status: 'ACTIVE' },
-      select: { id: true },
-    });
-
-    for (const admin of adminUsers) {
-      await db.notification.create({
-        data: {
-          userId: admin.id,
-          type: 'ORDER_UPDATE',
-          title: 'New Order Created',
-          message: `New order ${orderNumber}: ${title} - $${totalAmount.toFixed(2)} from ${order.client?.name || 'Client'}`,
-          link: '/admin/orders',
-        },
-      });
-    }
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
     console.error('Create order error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to create order' },
       { status: 500 }
     );
   }
 }
 
-// PUT /api/orders - Update order
+// PUT /api/orders - Update order (admin only)
 export async function PUT(request: NextRequest) {
   const authResult = await requireAuth(request);
   if (!authResult.authorized) {
@@ -169,7 +162,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Check if order exists and user has access
+    // Check if order exists
     const existingOrder = await db.order.findUnique({
       where: { id: orderId },
     });
@@ -181,20 +174,33 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Check permissions
+    // Check permissions - only admin/developer or the client who owns the order
     if (!canAccessResource(authResult, existingOrder.clientId)) {
       return NextResponse.json(
-        { error: 'You do not have permission to update this order' },
+        { error: 'No permission to update this order' },
         { status: 403 }
       );
     }
 
-    // Update order
+    // Only allow certain status transitions
+    if (updates.status && !['DRAFT', 'PENDING', 'IN_PROGRESS', 'QA', 'COMPLETED', 'DELIVERED', 'REVISION'].includes(updates.status)) {
+      return NextResponse.json(
+        { error: 'Invalid status' },
+        { status: 400 }
+      );
+    }
+
     const order = await db.order.update({
       where: { id: orderId },
-      data: {
-        ...updates,
-        updatedAt: new Date(),
+      data: updates,
+      include: {
+        service: {
+          select: {
+            id: true,
+            name: true,
+            category: true,
+          },
+        },
       },
     });
 
@@ -202,7 +208,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Update order error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to update order' },
       { status: 500 }
     );
   }

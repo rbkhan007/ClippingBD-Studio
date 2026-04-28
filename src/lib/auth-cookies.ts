@@ -26,9 +26,18 @@ const COOKIE_CONFIG = {
 
 /**
  * JWT secret - in production, use environment variable
+ * DO NOT use the default in production - set JWT_SECRET or NEXTAUTH_SECRET
  */
 function getJwtSecret(): string {
-  return process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'clippingbd-studio-default-secret-change-in-production';
+  const defaultSecret = 'clippingbd-studio-default-secret-change-in-production';
+  const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || defaultSecret;
+
+  // In production, enforce use of custom secret
+  if (process.env.NODE_ENV === 'production' && secret === defaultSecret) {
+    throw new Error('JWT_SECRET must be set in production environment');
+  }
+
+  return secret;
 }
 
 /**

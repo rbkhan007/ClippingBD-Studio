@@ -63,24 +63,44 @@ export async function GET(request: NextRequest) {
 
 // POST /api/notifications - Create notification (admin or system only)
 export async function POST(request: NextRequest) {
-  const authResult = await requireAuth(request)
+  const authResult = await requireAuth(request);
   if (!authResult.authorized) {
-    return authResult.error
+    return authResult.error!;
   }
 
   try {
-    const body = await request.json()
-    const { userId, type, title, message, link } = body
+    const body = await request.json();
+    const { userId, type, title, message, link } = body;
+
+    // Use current user's ID if not specified
+    const targetUserId = userId || authResult.userId;
 
     // Only admins can create notifications for other users
     if (userId && userId !== authResult.userId) {
       if (!['ADMIN', 'DEVELOPER'].includes(authResult.role!)) {
-        return NextResponse.json({ error: 'Only admins can create notifications for other users' }, { status: 403 })
+        return NextResponse.json(
+          { error: 'Only administrators can create notifications for other users' },
+          { status: 403 }
+        );
       }
     }
 
-    // Use current user's ID if not specified
-    const targetUserId = userId || authResult.userId
+    // Validate required fields
+    if (!title || !message) {
+      return NextResponse.json(
+        { error: 'Title and message are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate notification type
+    const validTypes = ['ORDER_UPDATE', 'PAYMENT', 'SYSTEM', 'DEADLINE', 'CHAT', 'QA_FEEDBACK', 'NITRO_ALERT'];
+    if (type && !validTypes.includes(type)) {
+      return NextResponse.json(
+        { error: `Invalid notification type. Must be one of: ${validTypes.join(', ')}` },
+        { status: 400 }
+      );
+    }
 
     // Create notification in database
     const notification = await db.notification.create({
@@ -92,7 +112,7 @@ export async function POST(request: NextRequest) {
         link: link || null,
         isRead: false,
       },
-    })
+    });
 
     return NextResponse.json({
       notification: {
@@ -105,10 +125,10 @@ export async function POST(request: NextRequest) {
         isRead: notification.isRead,
         createdAt: notification.createdAt.toISOString(),
       }
-    }, { status: 201 })
+    }, { status: 201 });
   } catch (error) {
-    console.error('Create notification error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Create notification error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 

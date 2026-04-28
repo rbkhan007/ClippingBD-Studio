@@ -704,27 +704,30 @@ export function AdminPayments() {
                   <Switch defaultChecked />
                 </div>
 
-                <div className="bg-muted/30 dark:bg-white/5 rounded-lg p-4">
-                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                    <Info className="w-4 h-4 text-cyan-400" />
-                    Webhook Endpoints
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">PayPal</span>
-                      <code className="text-xs bg-background px-2 py-1 rounded">/api/payments/webhooks</code>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Stripe</span>
-                      <code className="text-xs bg-background px-2 py-1 rounded">/api/payments/webhooks</code>
-                    </div>
+                 <div className="bg-muted/30 dark:bg-white/5 rounded-lg p-4">
+                   <h4 className="font-medium mb-2 flex items-center gap-2">
+                     <Info className="w-4 h-4 text-cyan-400" />
+                     Webhook Endpoints
+                   </h4>
+                   <div className="space-y-2 text-sm">
+                     <div className="flex items-center justify-between">
+                       <span className="text-muted-foreground">Stripe</span>
+                       <code className="text-xs bg-background px-2 py-1 rounded">/api/payments/webhooks/stripe</code>
+                     </div>
+                     <div className="flex items-center justify-between">
+                       <span className="text-muted-foreground">PayPal</span>
+                       <code className="text-xs bg-background px-2 py-1 rounded">/api/payments/webhooks/paypal (coming soon)</code>
+                     </div>
+                   </div>
+                   <p className="text-xs text-muted-foreground mt-2">
+                     Configure these URLs in your Stripe/PayPal dashboard for real-time payment automation.
+                   </p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
 
       {/* Edit Dialog */}
       <GatewayDialog

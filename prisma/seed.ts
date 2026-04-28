@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+[{}]
+=======
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
@@ -1229,3 +1232,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+>>>>>>> e295d53550430b8e2218d1d65ccc019b15c6121b

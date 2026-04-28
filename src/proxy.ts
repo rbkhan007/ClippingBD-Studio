@@ -1,9 +1,9 @@
 /*turbopackIgnore: true*/
-import path from 'path';
-import fs from 'fs';
 import type { NextMiddleware } from 'next/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { UserRole } from '@/types/database'
+import { verifyToken } from '@/lib/auth-cookies'
+import { checkRateLimit, RATE_LIMIT_CONFIGS } from '@/lib/rate-limit'
 
 // Environment variables - loaded at runtime
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000').split(',')
@@ -17,7 +17,6 @@ const publicRoutes = [
   '/services/video',
   '/services/ai',
   '/services/web',
-  '/pricing',
   '/portfolio',
   '/studio',
   '/team',
@@ -27,18 +26,39 @@ const publicRoutes = [
   '/support',
   '/auth',
   '/api/auth/login',
+  '/api/auth/logout',
   '/api/auth/signup',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
   '/api/contact',
   '/api/reviews',
   '/api/services',
+  '/api/portfolio',
+  '/api/team',
+  '/api/statistics',
+  '/api/static-data',
+  '/api/cms/data',
+  '/api/cms/hero',
+  '/api/cms/statistics',
+  '/api/cms/features',
+  '/api/cms/services',
+  '/api/cms/testimonials',
+  '/api/cms/team',
+  '/api/cms/partners',
+  '/api/cms/contact-info',
+  '/api/cms/faqs',
+  '/api/cms/pages',
+  '/api/payments/paypal',
   '/manifest.webmanifest',
   '/icon',
   '/apple-icon',
 ]
 
 const protectedRoutes: Record<string, UserRole[]> = {
+  '/pricing': ['CLIENT', 'EDITOR', 'QA', 'ADMIN', 'DEVELOPER'],
   '/dashboard': ['CLIENT', 'EDITOR', 'QA', 'ADMIN', 'DEVELOPER'],
   '/brief': ['CLIENT', 'ADMIN', 'DEVELOPER'],
+  '/orders': ['CLIENT', 'EDITOR', 'QA', 'ADMIN', 'DEVELOPER'],
   '/projects': ['CLIENT', 'EDITOR', 'QA', 'ADMIN', 'DEVELOPER'],
   '/billing': ['CLIENT', 'ADMIN', 'DEVELOPER'],
   '/support': ['CLIENT', 'ADMIN', 'DEVELOPER'],
@@ -72,14 +92,16 @@ function canAccess(userRole: UserRole, requiredRoles: UserRole[]): boolean {
   return requiredRoles.some(role => roleHierarchy[role] <= userLevel)
 }
 
-function getUserFromCookie(request: NextRequest): { id: string; role: UserRole } | null {
+async function getUserFromCookie(request: NextRequest): Promise<{ id: string; role: UserRole } | null> {
   const authCookie = request.cookies.get('auth_session')
   if (!authCookie) return null
 
   try {
-    const session = JSON.parse(decodeURIComponent(authCookie.value))
-    return session
-  } catch {
+    const session = await verifyToken(authCookie.value)
+    if (!session) return null
+    return { id: session.userId, role: session.role as UserRole }
+  } catch (error) {
+    console.error('Token verification failed:', error)
     return null
   }
 }
@@ -109,9 +131,9 @@ function getSecurityHeaders(): Record<string, string> {
   }
 }
 
-export default function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname, origin } = request.nextUrl
-  const user = getUserFromCookie(request)
+  const user = await getUserFromCookie(request)
 
   const response = NextResponse.next()
 
@@ -131,6 +153,47 @@ export default function middleware(request: NextRequest) {
     }
 
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
+  }
+
+  // Require authentication for real-time and sensitive APIs
+  const authRequiredAPIs = [
+    '/api/notifications',
+    '/api/chat/',
+    '/api/orders',
+    '/api/tasks',
+    '/api/tickets',
+    '/api/transactions',
+    '/api/upload',
+    '/api/users/profile',
+    '/api/settings',
+  ];
+  
+  const isAuthRequiredAPI = authRequiredAPIs.some(api => pathname.startsWith(api));
+  if (isAuthRequiredAPI && !user) {
+    return NextResponse.json(
+      { error: 'Authentication required' },
+      { status: 401, headers: response.headers }
+    );
+  }
+
+  // Rate limiting for sensitive admin API routes
+  if (pathname.startsWith('/api/admin/') && request.method !== 'GET') {
+    const rateLimitResult = checkRateLimit(request, RATE_LIMIT_CONFIGS.admin)
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: rateLimitResult.message || 'Rate limit exceeded' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
+          },
+        }
+      )
+    }
+    // Add rate limit headers to response
+    response.headers.set('X-RateLimit-Limit', rateLimitResult.limit.toString())
+    response.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString())
+    response.headers.set('X-RateLimit-Reset', rateLimitResult.reset.toString())
   }
 
   if (pathname.startsWith('/api/proxy/asset/')) {

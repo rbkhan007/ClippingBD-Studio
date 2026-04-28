@@ -1,20 +1,18 @@
 'use client';
 
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Float, MeshDistortMaterial, OrbitControls, Stars, Text } from '@react-three/drei';
-import { useRef, useMemo, useState } from 'react';
+import { Float, MeshDistortMaterial, OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 
-interface FloatingShapeProps {
+function FloatingShape({ position, color, scale, speed, distort, onClick }: {
   position: [number, number, number];
   color: string;
   scale: number;
   speed: number;
   distort: number;
   onClick?: () => void;
-}
-
-function FloatingShape({ position, color, scale, speed, distort, onClick }: FloatingShapeProps) {
+}) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   
@@ -44,22 +42,22 @@ function FloatingShape({ position, color, scale, speed, distort, onClick }: Floa
           distort={distort}
           roughness={0.2}
           metalness={0.8}
-          emissive={hovered ? color : 'transparent'}
+          emissive={hovered ? color : '#000000'}
           emissiveIntensity={hovered ? 0.3 : 0}
+          transparent={true}
+          opacity={hovered ? 1 : 0.8}
         />
       </mesh>
     </Float>
   );
 }
 
-interface ServiceFrameProps {
+function ServiceFrame({ position, color, label, onClick }: {
   position: [number, number, number];
   color: string;
   label: string;
   onClick?: () => void;
-}
-
-function ServiceFrame({ position, color, label, onClick }: ServiceFrameProps) {
+}) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   
@@ -75,7 +73,6 @@ function ServiceFrame({ position, color, label, onClick }: ServiceFrameProps) {
   return (
     <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.5}>
       <group ref={meshRef} position={position}>
-        {/* Frame */}
         <mesh 
           onClick={onClick}
           onPointerOver={() => setHovered(true)}
@@ -90,7 +87,6 @@ function ServiceFrame({ position, color, label, onClick }: ServiceFrameProps) {
             emissiveIntensity={hovered ? 0.4 : 0.1}
           />
         </mesh>
-        {/* Inner glow */}
         <mesh position={[0, 0, 0.05]}>
           <planeGeometry args={[2.3, 1.6]} />
           <meshBasicMaterial 
@@ -104,13 +100,11 @@ function ServiceFrame({ position, color, label, onClick }: ServiceFrameProps) {
   );
 }
 
-interface PulseRingProps {
+function PulseRing({ position, color, speed = 1 }: {
   position: [number, number, number];
   color: string;
   speed?: number;
-}
-
-function PulseRing({ position, color, speed = 1 }: PulseRingProps) {
+}) {
   const ringRef = useRef<THREE.Mesh>(null);
   
   useFrame((state) => {
@@ -176,7 +170,6 @@ function GridFloor() {
         args={[60, 60, '#0a3d4d', '#062029']} 
         position={[0, -4, -5]}
       />
-      {/* Gradient floor */}
       <mesh position={[0, -4.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[100, 100]} />
         <meshBasicMaterial color="#050a10" transparent opacity={0.8} />
@@ -185,11 +178,7 @@ function GridFloor() {
   );
 }
 
-interface ScrollReactiveCameraProps {
-  scrollY: number;
-}
-
-function ScrollReactiveCamera({ scrollY }: ScrollReactiveCameraProps) {
+function ScrollReactiveCamera({ scrollY }: { scrollY: number }) {
   const { camera } = useThree();
   
   useFrame(() => {
@@ -207,7 +196,7 @@ interface ThreeSceneProps {
   onServiceClick?: (service: string) => void;
 }
 
-export default function ThreeScene({ scrollY = 0, onServiceClick }: ThreeSceneProps) {
+function ThreeSceneInner({ scrollY = 0, onServiceClick }: ThreeSceneProps) {
   const serviceLabels = ['IMAGE', 'VIDEO', 'AI', 'WEB'];
   const serviceColors = ['#00d4ff', '#22d3ee', '#a855f7', '#f97316'];
 
@@ -220,27 +209,21 @@ export default function ThreeScene({ scrollY = 0, onServiceClick }: ThreeScenePr
       >
         <color attach="background" args={['#030308']} />
         
-        {/* Scroll reactive camera */}
         <ScrollReactiveCamera scrollY={scrollY} />
         
-        {/* Lighting */}
         <ambientLight intensity={0.4} />
         <directionalLight position={[10, 10, 5]} intensity={1.2} color="#ffffff" />
         <pointLight position={[-15, 5, -5]} intensity={0.8} color="#00d4ff" />
         <pointLight position={[15, -5, 5]} intensity={0.6} color="#f97316" />
         
-        {/* Stars Background */}
         <Stars radius={80} depth={50} count={4000} factor={3} fade speed={0.5} />
         
-        {/* Grid Floor */}
         <GridFloor />
         
-        {/* Pulse Rings */}
         <PulseRing position={[0, 0, -2]} color="#00d4ff" speed={0.8} />
         <PulseRing position={[-5, 2, -3]} color="#22d3ee" speed={1.2} />
         <PulseRing position={[5, -1, -2]} color="#f97316" speed={1} />
         
-        {/* Floating Shapes */}
         <FloatingShape 
           position={[-5, 3, -3]} 
           color="#00d4ff" 
@@ -277,7 +260,6 @@ export default function ThreeScene({ scrollY = 0, onServiceClick }: ThreeScenePr
           distort={0.3}
         />
         
-        {/* Service Frames */}
         {serviceLabels.map((label, i) => (
           <ServiceFrame
             key={label}
@@ -292,10 +274,8 @@ export default function ThreeScene({ scrollY = 0, onServiceClick }: ThreeScenePr
           />
         ))}
         
-        {/* Particles */}
         <Particles count={250} color="#00d4ff" />
         
-        {/* Controls - limited for better UX */}
         <OrbitControls 
           enableZoom={false} 
           enablePan={false}
@@ -306,10 +286,23 @@ export default function ThreeScene({ scrollY = 0, onServiceClick }: ThreeScenePr
         />
       </Canvas>
       
-      {/* Gradient Overlays */}
       <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-r from-background/50 via-transparent to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-l from-background/50 via-transparent to-transparent pointer-events-none" />
     </div>
   );
+}
+
+export default function ThreeScene(props: ThreeSceneProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="absolute inset-0 -z-10 overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-black" />;
+  }
+
+  return <ThreeSceneInner {...props} />;
 }

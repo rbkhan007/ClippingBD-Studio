@@ -1,121 +1,89 @@
-// ClippingBD Master - Comprehensive Schema
-// A professional image/video editing service platform
-//
-// DATABASE CONFIGURATION:
-// - SQLite (Default): DATABASE_URL="file:./db/custom.db"
-// - Supabase/PostgreSQL: Uncomment the postgresql section below
-//
-// IMPORTANT: When switching to PostgreSQL:
-// 1. Update DATABASE_URL and DIRECT_URL in .env
-// 2. Change provider below to "postgresql"
-// 3. Run: npx prisma db push
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  // Supabase PostgreSQL (Production)
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-// ==================== USER MANAGEMENT ====================
-
 model User {
-  id              String   @id @default(cuid())
-  email           String   @unique
-  password        String
-  name            String?
-  avatar          String?
-  role            String   @default("CLIENT") // CLIENT, EDITOR, QA, ADMIN, DEVELOPER
-  status          String   @default("PENDING") // PENDING, ACTIVE, SUSPENDED, BANNED
-  
-  // Wallet & Currency
-  walletBalance     Float    @default(0)
-  currency          String   @default("USD") // User's preferred display currency
-  preferredCurrency String   @default("USD") // Currency for payments
+  id                String                @id @default(cuid())
+  email             String                @unique
+  password          String
+  name              String?
+  avatar            String?
+  role              String                @default("CLIENT")
+  status            String                @default("PENDING")
+  walletBalance     Float                 @default(0)
+  currency          String                @default("USD")
+  preferredCurrency String                @default("USD")
   stripeCustomerId  String?
-  
-  // Approval workflow
-  approvedBy      String?  // Admin/Developer who approved this user
-  approvedAt      DateTime?
-  rejectionReason String?
-  
-  // Profile
-  phone           String?
-  company         String?
-  country         String?
-  timezone        String   @default("Asia/Dhaka")
-  
-  // Impersonation (for Developer role)
-  impersonating   String?
-  
-  // Timestamps
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt()
-  lastLoginAt     DateTime?
-  
-  // Relations
-  orders          Order[]
-  tasks           Task[]
-  reviews         QAReview[]
-  transactions    Transaction[]
-  tickets         SupportTicket[]
-  payouts         Payout[]
-  notifications   Notification[]
-  assets          Asset[]
-  sentMessages    ChatMessage[] @relation("SentMessages")
-  chatRooms       ChatRoomParticipant[]
-  
+  approvedBy        String?
+  approvedAt        DateTime?
+  rejectionReason   String?
+  phone             String?
+  company           String?
+  country           String?
+  timezone          String                @default("Asia/Dhaka")
+  impersonating     String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  lastLoginAt       DateTime?
+  assets            Asset[]
+  sentMessages      ChatMessage[]         @relation("SentMessages")
+  chatRooms         ChatRoomParticipant[]
+  notifications     Notification[]
+  orders            Order[]
+  payouts           Payout[]
+  reviews           QAReview[]
+  tickets           SupportTicket[]
+  tasks             Task[]
+  transactions      Transaction[]
+
   @@index([status])
   @@index([role])
   @@map("users")
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  token        String   @unique
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  deviceInfo   String?
-  ipAddress    String?
-  
+  id         String   @id @default(cuid())
+  userId     String
+  token      String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  deviceInfo String?
+  ipAddress  String?
+
   @@map("sessions")
 }
-
-// ==================== SYSTEM SETTINGS ====================
 
 model SystemSetting {
   id          String   @id @default(cuid())
   key         String   @unique
   value       String
-  type        String   @default("TEXT") // TEXT, JSON, IMAGE, URL
+  type        String   @default("TEXT")
   description String?
-  updatedAt   DateTime @updatedAt()
-  
+  updatedAt   DateTime @updatedAt
+
   @@map("system_settings")
 }
-
-// ==================== SERVICES & PRICING ====================
 
 model Service {
   id          String   @id @default(cuid())
   name        String
   slug        String   @unique
-  category    String   // IMAGE, VIDEO, AI, WEB, CLIPPING_PATH
+  category    String
   description String
-  features    String   // JSON array
+  features    String
   basePrice   Float
-  turnaround  Int      // hours
+  turnaround  Int
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
-  
   orders      Order[]
-  
+
   @@map("services")
 }
 
@@ -126,7 +94,7 @@ model PricingTier {
   maxQuantity  Int
   pricePerUnit Float
   discount     Float  @default(0)
-  
+
   @@map("pricing_tiers")
 }
 
@@ -140,159 +108,117 @@ model ServiceCategory {
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
-  
+
   @@map("service_categories")
 }
 
-// ==================== ORDERS & PROJECTS ====================
-
 model Order {
-  id              String   @id @default(cuid())
-  orderNumber     String   @unique
-  clientId        String
-  serviceId       String
-  
-  // Status tracking
-  status          String   @default("DRAFT") // DRAFT, PENDING, IN_PROGRESS, QA, REVISION, COMPLETED, DELIVERED, CANCELLED
-  priority        String   @default("STANDARD") // STANDARD, EXPRESS, NITRO
-  
-  // Details
-  title           String
-  description     String?
-  requirements    String?  // JSON for structured requirements
-  quantity        Int      @default(1)
-  serviceType     String   @default("IMAGE") // IMAGE, VIDEO, AI, WEB
-  
-  // Pricing
-  baseAmount      Float
-  priorityBonus   Float    @default(0)
-  totalAmount     Float
-  isPaid          Boolean  @default(false)
-  
-  // Timing
-  deadline        DateTime?
-  completedAt     DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt()
-  
-  // Files
-  sourceFiles     String?  // JSON array of file URLs
-  deliverableFiles String? // JSON array of delivered files
-  
-  // Web specific
-  webRequirements String?  // JSON for web project requirements
-  deploymentUrl   String?
-  
-  // Relations
-  client          User     @relation(fields: [clientId], references: [id])
-  service         Service  @relation(fields: [serviceId], references: [id])
-  tasks           Task[]
-  reviews         QAReview[]
-  tickets         SupportTicket[]
-  websites        Website[]
-  assets          Asset[]
-  chatRooms       ChatRoom[]
-  
+  id               String          @id @default(cuid())
+  orderNumber      String          @unique
+  clientId         String
+  serviceId        String
+  status           String          @default("DRAFT")
+  priority         String          @default("STANDARD")
+  title            String
+  description      String?
+  requirements     String?
+  quantity         Int             @default(1)
+  serviceType      String          @default("IMAGE")
+  baseAmount       Float
+  priorityBonus    Float           @default(0)
+  totalAmount      Float
+  isPaid           Boolean         @default(false)
+  deadline         DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  sourceFiles      String?
+  deliverableFiles String?
+  webRequirements  String?
+  deploymentUrl    String?
+  assets           Asset[]
+  chatRooms        ChatRoom[]
+  client           User            @relation(fields: [clientId], references: [id])
+  service          Service         @relation(fields: [serviceId], references: [id])
+  reviews          QAReview[]
+  tickets          SupportTicket[]
+  tasks            Task[]
+  websites         Website[]
+
   @@map("orders")
 }
 
-// ==================== PRODUCTION TASKS ====================
-
 model Task {
-  id          String   @id @default(cuid())
-  orderId     String
-  editorId    String?
-  
-  // Task details
-  status      String   @default("AVAILABLE") // AVAILABLE, CLAIMED, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED
-  department  String   // CLIPPING_PATH, RETOUCHING, COLOR_CORRECTION, MOTION_GRAPHICS, AI_PROCESSING, WEB_DEVELOPMENT
-  
-  // Timing
-  claimedAt   DateTime?
-  submittedAt DateTime?
-  deadline    DateTime?
-  createdAt   DateTime @default(now())
-  
-  // Pricing
-  payoutAmount Float?
-  
-  // Revision tracking
-  revisionCount Int    @default(0)
+  id            String     @id @default(cuid())
+  orderId       String
+  editorId      String?
+  status        String     @default("AVAILABLE")
+  department    String
+  claimedAt     DateTime?
+  submittedAt   DateTime?
+  deadline      DateTime?
+  createdAt     DateTime   @default(now())
+  payoutAmount  Float?
+  revisionCount Int        @default(0)
   revisionNotes String?
-  
-  // Relations
-  order       Order    @relation(fields: [orderId], references: [id])
-  editor      User?    @relation(fields: [editorId], references: [id])
-  reviews     QAReview[]
-  
+  reviews       QAReview[]
+  editor        User?      @relation(fields: [editorId], references: [id])
+  order         Order      @relation(fields: [orderId], references: [id])
+
   @@map("tasks")
 }
 
-// ==================== QUALITY ASSURANCE ====================
-
 model QAReview {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   taskId      String
   orderId     String
   qaId        String
-  
-  // Review data
-  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, ESCALATED
-  score       Int?     // 1-10 quality score
+  status      String    @default("PENDING")
+  score       Int?
   feedback    String?
-  annotations String?  // JSON for pixel/frame annotations
-  
-  // Timing
+  annotations String?
   reviewedAt  DateTime?
-  createdAt   DateTime @default(now())
-  
-  // Relations
-  task        Task     @relation(fields: [taskId], references: [id])
-  order       Order    @relation(fields: [orderId], references: [id])
-  qa          User     @relation(fields: [qaId], references: [id])
-  
+  createdAt   DateTime  @default(now())
+  order       Order     @relation(fields: [orderId], references: [id])
+  qa          User      @relation(fields: [qaId], references: [id])
+  task        Task      @relation(fields: [taskId], references: [id])
+
   @@map("qa_reviews")
 }
 
-// ==================== WEB DEVELOPMENT ====================
-
 model Website {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   orderId     String
   name        String
   domain      String?
-  status      String   @default("DRAFT") // DRAFT, DEVELOPMENT, PREVIEW, LIVE, PAUSED
-  framework   String   @default("nextjs")
+  status      String       @default("DRAFT")
+  framework   String       @default("nextjs")
   repoUrl     String?
   previewUrl  String?
   liveUrl     String?
-  config      String?  // JSON
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt()
+  config      String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   deployedAt  DateTime?
-  
-  order       Order          @relation(fields: [orderId], references: [id])
   deployments Deployment[]
-  
+  order       Order        @relation(fields: [orderId], references: [id])
+
   @@map("websites")
 }
 
 model Deployment {
-  id          String   @id @default(cuid())
-  websiteId   String
-  status      String   @default("PENDING") // PENDING, BUILDING, SUCCESS, FAILED
-  version     String
-  logs        String?
-  deployedAt  DateTime?
-  createdAt   DateTime @default(now())
-  deployedBy  String?
-  
-  website     Website @relation(fields: [websiteId], references: [id])
-  
+  id         String    @id @default(cuid())
+  websiteId  String
+  status     String    @default("PENDING")
+  version    String
+  logs       String?
+  deployedAt DateTime?
+  createdAt  DateTime  @default(now())
+  deployedBy String?
+  website    Website   @relation(fields: [websiteId], references: [id])
+
   @@map("deployments")
 }
-
-// ==================== ASSETS ====================
 
 model Asset {
   id           String   @id @default(cuid())
@@ -307,108 +233,87 @@ model Asset {
   url          String
   isPublic     Boolean  @default(false)
   createdAt    DateTime @default(now())
-  
-  user         User     @relation(fields: [userId], references: [id])
   order        Order?   @relation(fields: [orderId], references: [id])
-  
+  user         User     @relation(fields: [userId], references: [id])
+
   @@map("assets")
 }
-
-// ==================== FINANCIAL ====================
 
 model Transaction {
   id            String   @id @default(cuid())
   userId        String
-  type          String   // DEPOSIT, WITHDRAWAL, ORDER_PAYMENT, REFUND, PAYOUT
+  type          String
   amount        Float
   currency      String   @default("USD")
-  
-  // Payment details
-  status        String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  status        String   @default("PENDING")
   paymentMethod String?
   stripeId      String?
-  
-  // Metadata
   description   String?
-  metadata      String?  // JSON
-  
+  metadata      String?
   createdAt     DateTime @default(now())
-  
   user          User     @relation(fields: [userId], references: [id])
-  
+
   @@map("transactions")
 }
 
 model Payout {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   editorId    String
   amount      Float
-  status      String   @default("PENDING") // PENDING, PROCESSING, COMPLETED
-  
+  status      String    @default("PENDING")
   periodStart DateTime
   periodEnd   DateTime
   processedAt DateTime?
-  createdAt   DateTime @default(now())
-  
-  editor      User     @relation(fields: [editorId], references: [id])
-  
+  createdAt   DateTime  @default(now())
+  editor      User      @relation(fields: [editorId], references: [id])
+
   @@map("payouts")
 }
 
-// ==================== SUPPORT ====================
-
 model SupportTicket {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   clientId    String
   orderId     String?
-  
   subject     String
   description String
-  status      String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
-  priority    String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt()
+  status      String          @default("OPEN")
+  priority    String          @default("NORMAL")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   resolvedAt  DateTime?
-  
-  client      User     @relation(fields: [clientId], references: [id])
-  order       Order?   @relation(fields: [orderId], references: [id])
+  client      User            @relation(fields: [clientId], references: [id])
+  order       Order?          @relation(fields: [orderId], references: [id])
   messages    TicketMessage[]
-  
+
   @@map("support_tickets")
 }
 
 model TicketMessage {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   ticketId    String
   senderId    String
   message     String
-  attachments String?  // JSON array
-  
-  createdAt   DateTime @default(now())
-  
+  attachments String?
+  createdAt   DateTime      @default(now())
   ticket      SupportTicket @relation(fields: [ticketId], references: [id])
-  
+
   @@map("ticket_messages")
 }
 
-// ==================== CHAT ====================
-
 model ChatRoom {
-  id             String   @id @default(cuid())
-  type           String   // DIRECT, PROJECT, SUPPORT, TEAM
-  name           String?
-  orderId        String?
-  ticketId       String?
-  lastMessage    String?
-  lastMessageAt  DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt()
-  
-  participants   ChatRoomParticipant[]
-  messages       ChatMessage[]
-  order          Order?   @relation(fields: [orderId], references: [id])
-  
+  id            String                @id @default(cuid())
+  type          String
+  name          String?
+  orderId       String?
+  ticketId      String?
+  lastMessage   String?
+  lastMessageAt DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  messages      ChatMessage[]
+  participants  ChatRoomParticipant[]
+  order         Order?                @relation(fields: [orderId], references: [id])
+
   @@map("chat_rooms")
 }
 
@@ -417,10 +322,9 @@ model ChatRoomParticipant {
   roomId   String
   userId   String
   joinedAt DateTime @default(now())
-  
-  user     User     @relation(fields: [userId], references: [id])
   room     ChatRoom @relation(fields: [roomId], references: [id])
-  
+  user     User     @relation(fields: [userId], references: [id])
+
   @@unique([roomId, userId])
   @@map("chat_room_participants")
 }
@@ -430,71 +334,57 @@ model ChatMessage {
   roomId      String
   senderId    String
   content     String
-  attachments String?  // JSON array
+  attachments String?
   isRead      Boolean  @default(false)
-  readBy      String?  // JSON array of user IDs
+  readBy      String?
   createdAt   DateTime @default(now())
-  
   room        ChatRoom @relation(fields: [roomId], references: [id])
   sender      User     @relation("SentMessages", fields: [senderId], references: [id])
-  
+
   @@map("chat_messages")
 }
-
-// ==================== PORTFOLIO ====================
 
 model PortfolioItem {
   id          String   @id @default(cuid())
   title       String
   description String?
-  category    String   // CLIPPING_PATH, RETOUCHING, COLOR_GRADING, MOTION_GRAPHICS
-  serviceType String   // IMAGE, VIDEO
-  
+  category    String
+  serviceType String
   beforeImage String
   afterImage  String
   thumbnail   String?
-  
   isPublished Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
-  
+
   @@map("portfolio_items")
 }
-
-// ==================== NOTIFICATIONS ====================
 
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  type      String   // ORDER_UPDATE, PAYMENT, SYSTEM, DEADLINE, CHAT, QA_FEEDBACK, NITRO_ALERT
+  type      String
   title     String
   message   String
   link      String?
   isRead    Boolean  @default(false)
-  
   createdAt DateTime @default(now())
-  
   user      User     @relation(fields: [userId], references: [id])
-  
+
   @@map("notifications")
 }
 
-// ==================== ANALYTICS ====================
-
 model AnalyticsEvent {
   id         String   @id @default(cuid())
-  type       String   // PAGE_VIEW, ORDER_CREATED, PAYMENT_SUCCESS, etc.
-  entityType String?  // ORDER, USER, SERVICE
+  type       String
+  entityType String?
   entityId   String?
-  data       String?  // JSON
+  data       String?
   userId     String?
-  
   createdAt  DateTime @default(now())
-  
+
   @@map("analytics_events")
 }
-
-// ==================== TESTIMONIALS ====================
 
 model Testimonial {
   id          String   @id @default(cuid())
@@ -511,40 +401,29 @@ model Testimonial {
   @@map("testimonials")
 }
 
-// ==================== CLIENT REVIEWS ====================
-// Public reviews submitted by clients that require admin approval
-
 model ClientReview {
-  id          String   @id @default(cuid())
-  name        String
-  email       String
-  company     String?
-  role        String?
-  content     String
-  rating      Int      @default(5)
-  avatar      String?
-
-  // Approval status
-  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  reviewedAt  DateTime?
-  reviewedBy  String?  // Admin user ID who approved/rejected
-  reviewNote  String?  // Optional note from admin
-
-  // Metadata
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt()
-
-  // Display order for approved reviews
-  sortOrder   Int      @default(0)
+  id         String    @id @default(cuid())
+  name       String
+  email      String
+  company    String?
+  role       String?
+  content    String
+  rating     Int       @default(5)
+  avatar     String?
+  status     String    @default("PENDING")
+  reviewedAt DateTime?
+  reviewedBy String?
+  reviewNote String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  sortOrder  Int       @default(0)
 
   @@index([status])
   @@index([createdAt])
   @@map("client_reviews")
 }
-
-// ==================== TEAM MEMBERS ====================
 
 model TeamMember {
   id          String   @id @default(cuid())
@@ -552,15 +431,13 @@ model TeamMember {
   role        String
   bio         String?
   avatar      String?
-  socialLinks String?  // JSON
+  socialLinks String?
   isPublished Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
-  
+
   @@map("team_members")
 }
-
-// ==================== PARTNER SITES ====================
 
 model PartnerSite {
   id          String   @id @default(cuid())
@@ -571,11 +448,9 @@ model PartnerSite {
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
-  
+
   @@map("partner_sites")
 }
-
-// ==================== FEATURE FLAGS ====================
 
 model FeatureFlag {
   id          String   @id @default(cuid())
@@ -583,153 +458,133 @@ model FeatureFlag {
   name        String
   description String?
   enabled     Boolean  @default(false)
-  rollout     Int      @default(100) // percentage
-  updatedAt   DateTime @updatedAt()
-  
+  rollout     Int      @default(100)
+  updatedAt   DateTime @updatedAt
+
   @@map("feature_flags")
 }
 
-// ==================== CMS PAGES ====================
-
 model CMSPage {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  content     String   // HTML or Markdown content
-  excerpt     String?
-  metaTitle       String?
-  metaDescription String?
-  metaKeywords    String?
-  featuredImage   String?
-  isPublished Boolean  @default(false)
-  isHomePage  Boolean  @default(false)
-  authorId    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt()
-  publishedAt DateTime?
-  
-  @@map("cms_pages")
-}
-
-// ==================== CMS BLOG ====================
-
-model BlogPost {
-  id              String   @id @default(cuid())
-  slug            String   @unique
+  id              String    @id @default(cuid())
+  slug            String    @unique
   title           String
-  content         String   // HTML or Markdown content
+  content         String
   excerpt         String?
   metaTitle       String?
   metaDescription String?
   metaKeywords    String?
   featuredImage   String?
-  category        String   // TUTORIAL, NEWS, UPDATE, CASE_STUDY
-  tags            String?  // JSON array
+  isPublished     Boolean   @default(false)
+  isHomePage      Boolean   @default(false)
   authorId        String?
-  authorName      String?
-  isPublished     Boolean  @default(false)
-  isFeatured      Boolean  @default(false)
-  viewCount       Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt()
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   publishedAt     DateTime?
-  
-  @@map("blog_posts")
+
+  @@map("cms_pages")
 }
 
-// ==================== CMS FAQ ====================
+model BlogPost {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  content         String
+  excerpt         String?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  featuredImage   String?
+  category        String
+  tags            String?
+  authorId        String?
+  authorName      String?
+  isPublished     Boolean   @default(false)
+  isFeatured      Boolean   @default(false)
+  viewCount       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  publishedAt     DateTime?
+
+  @@map("blog_posts")
+}
 
 model FAQItem {
   id          String   @id @default(cuid())
   question    String
   answer      String
-  category    String   // GENERAL, PRICING, SERVICES, SUPPORT, TECHNICAL
+  category    String
   sortOrder   Int      @default(0)
   isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt()
-  
+  updatedAt   DateTime @updatedAt
+
   @@map("faq_items")
 }
 
-// ==================== PAYMENT GATEWAYS ====================
-
 model PaymentGateway {
-  id                String   @id @default(cuid())
-  provider          String   // paypal, stripe, payoneer, bkash, nagad, others
-  displayName       String   // Human-readable name
-  isEnabled         Boolean  @default(false)
-  
-  // API Credentials (encrypted)
-  publicKey         String?  // Public key/client ID (not encrypted)
-  secretKey         String?  // Encrypted secret key
-  webhookSecret     String?  // Encrypted webhook secret
-  merchantId        String?  // Merchant ID (if applicable)
-  
-  // Configuration
-  currency          String   @default("USD") // Default currency for this gateway
-  additionalConfig  String?  // JSON for additional provider-specific config
-  
-  // Metadata
-  description       String?
-  logoUrl           String?
-  sortOrder         Int      @default(0)
-  
-  // Timestamps
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt()
-  
+  id               String   @id @default(cuid())
+  provider         String
+  displayName      String
+  isEnabled        Boolean  @default(false)
+  publicKey        String?
+  secretKey        String?
+  webhookSecret    String?
+  merchantId       String?
+  currency         String   @default("USD")
+  additionalConfig String?
+  description      String?
+  logoUrl          String?
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
   @@index([provider])
   @@index([isEnabled])
   @@map("payment_gateways")
 }
 
-// ==================== EXCHANGE RATES ====================
-
 model ExchangeRate {
-  id          String   @id @default(cuid())
+  id           String   @id @default(cuid())
   fromCurrency String
   toCurrency   String
-  rate        Float    // Exchange rate (1 fromCurrency = rate toCurrency)
-  source      String?  // API source used
-  updatedAt   DateTime @updatedAt()
-  
+  rate         Float
+  source       String?
+  updatedAt    DateTime @updatedAt
+
   @@unique([fromCurrency, toCurrency])
   @@map("exchange_rates")
 }
 
 model Contact {
   id        String   @id @default(cuid())
-  name     String
-  email    String
-  subject  String
-  message  String
-  company  String?
-  phone    String?
-  status   String   @default("PENDING") // PENDING, RESPONDED, CLOSED
-  notes    String?
+  name      String
+  email     String
+  subject   String
+  message   String
+  company   String?
+  phone     String?
+  status    String   @default("PENDING")
+  notes     String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt()
+  updatedAt DateTime @updatedAt
 }
 
-// ==================== DYNAMIC CMS MODELS ====================
-// These enable real-time editing via Prisma Studio
-
 model CmsGlobalSettings {
-  id           String   @id @default(cuid())
-  siteName     String   @default("ClippingBD Studio")
-  logoUrl      String?
-  faviconUrl   String?
-  tagline      String?
-  description  String?
-  keywords     String?
-  author       String?
-  footerText   String?
-  primaryColor String   @default("#00d4ff")
-  secondaryColor String @default("#22d3ee")
-  accentColor  String   @default("#f97316")
-  updatedAt    DateTime @updatedAt
-  
+  id             String   @id @default(cuid())
+  siteName       String   @default("ClippingBD Studio")
+  logoUrl        String?
+  faviconUrl     String?
+  tagline        String?
+  description    String?
+  keywords       String?
+  author         String?
+  footerText     String?
+  primaryColor   String   @default("#00d4ff")
+  secondaryColor String   @default("#22d3ee")
+  accentColor    String   @default("#f97316")
+  updatedAt      DateTime @updatedAt
+  whatsappNumber String?
+
   @@map("cms_global_settings")
 }
 
@@ -748,103 +603,103 @@ model CmsHero {
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-  
+
   @@map("cms_hero")
 }
 
 model CmsStatistic {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   label       String
   value       String
   suffix      String?
   prefix      String?
   icon        String?
   description String?
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
-  
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
   @@map("cms_statistics")
 }
 
 model CmsFeature {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   title       String
   description String
   icon        String?
   link        String?
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
-  
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
   @@map("cms_features")
 }
 
 model CmsService {
-  id            String   @id @default(cuid())
-  title         String
-  subtitle      String?
-  description   String
-  category      String   // IMAGE, VIDEO, AI, WEB, CLIPPING_PATH
-  priceFrom     Float?
-  turnaround    String?
-  icon          String?
-  imageUrl      String?
-  features      String?  // JSON array
-  isActive      Boolean  @default(true)
-  order         Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String?
+  description String
+  category    String
+  priceFrom   Float?
+  turnaround  String?
+  icon        String?
+  imageUrl    String?
+  features    String?
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   @@map("cms_services")
 }
 
 model CmsPricingTier {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
   price       Float
-  period      String   @default("month") // month, year, project
+  period      String  @default("month")
   description String?
-  features    String?  // JSON array
-  isPopular   Boolean  @default(false)
-  ctaText     String   @default("Get Started")
-  ctaUrl      String   @default("/auth")
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
-  
+  features    String?
+  isPopular   Boolean @default(false)
+  ctaText     String  @default("Get Started")
+  ctaUrl      String  @default("/auth")
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
   @@map("cms_pricing_tiers")
 }
 
 model CmsTestimonial {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   name      String
   role      String
   company   String?
   content   String
   avatarUrl String?
-  rating    Int      @default(5)
-  order     Int      @default(0)
-  isActive  Boolean  @default(true)
-  
+  rating    Int     @default(5)
+  order     Int     @default(0)
+  isActive  Boolean @default(true)
+
   @@map("cms_testimonials")
 }
 
 model CmsPortfolioItem {
-  id             String   @id @default(cuid())
-  title         String
-  description   String?
+  id             String  @id @default(cuid())
+  title          String
+  description    String?
   beforeImageUrl String
   afterImageUrl  String
   thumbnailUrl   String?
-  serviceType   String
-  category      String?
-  clientName    String?
-  order         Int      @default(0)
-  isActive      Boolean  @default(true)
-  
+  serviceType    String
+  category       String?
+  clientName     String?
+  order          Int     @default(0)
+  isActive       Boolean @default(true)
+
   @@map("cms_portfolio_items")
 }
 
 model CmsTeamMember {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   name      String
   role      String
   bio       String?
@@ -852,78 +707,76 @@ model CmsTeamMember {
   email     String?
   linkedin  String?
   twitter   String?
-  order     Int      @default(0)
-  isActive  Boolean  @default(true)
-  
+  order     Int     @default(0)
+  isActive  Boolean @default(true)
+
   @@map("cms_team_members")
 }
 
 model CmsFaq {
-  id       String   @id @default(cuid())
+  id       String  @id @default(cuid())
   question String
   answer   String
-  category String   @default("GENERAL") // GENERAL, PRICING, SERVICES, SUPPORT
-  order    Int      @default(0)
-  isActive Boolean  @default(true)
-  
+  category String  @default("GENERAL")
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
   @@map("cms_faqs")
 }
 
 model CmsPartner {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
   logoUrl     String?
   websiteUrl  String?
   description String?
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
-  
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
   @@map("cms_partners")
 }
 
 model CmsSocialLink {
-  id       String @id @default(cuid())
-  platform String // facebook, twitter, instagram, linkedin, youtube
+  id       String  @id @default(cuid())
+  platform String
   url      String
   icon     String?
   isActive Boolean @default(true)
-  order    Int    @default(0)
-  
+  order    Int     @default(0)
+
   @@map("cms_social_links")
 }
 
 model CmsContactInfo {
-  id        String  @id @default(cuid())
-  type      String  // email, phone, whatsapp, address, hours
-  label     String
-  value     String
-  icon      String?
-  link      String?
-  isPublic  Boolean @default(true)
-  order     Int     @default(0)
-  
+  id       String  @id @default(cuid())
+  type     String
+  label    String
+  value    String
+  icon     String?
+  link     String?
+  isPublic Boolean @default(true)
+  order    Int     @default(0)
+
   @@map("cms_contact_info")
 }
 
-// ==================== STATIC DATA ====================
-
 model StaticData {
   id          String   @id @default(cuid())
-  category    String   // HERO, SERVICES, STATS, TESTIMONIALS, TEAM, PRICING, CTA, FOOTER, etc.
-  key         String   // Unique key within category (e.g., "hero_title", "stats_clients")
+  category    String
+  key         String
   title       String?
   subtitle    String?
-  content     String?  // Main content (HTML or text)
-  description String?  // Additional description
+  content     String?
+  description String?
   imageUrl    String?
-  icon        String?  // Icon name from lucide-react
-  link        String?  // URL for buttons/links
+  icon        String?
+  link        String?
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
-  metadata    String?  // JSON for extra data (like colors, styles, etc.)
+  metadata    String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt()
-  
+  updatedAt   DateTime @updatedAt
+
   @@unique([category, key])
   @@index([category])
   @@index([isActive])

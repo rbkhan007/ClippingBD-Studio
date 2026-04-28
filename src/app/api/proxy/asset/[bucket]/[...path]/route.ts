@@ -8,7 +8,7 @@ import { db } from '@/lib/db';
 import { VALID_BUCKETS } from '@/lib/validations/upload';
 
 // Storage path
-const STORAGE_PATH = process.env.LOCAL_STORAGE_PATH || /*turbopackIgnore: true*/ './uploads';
+const STORAGE_PATH = './uploads';
 
 // Public buckets that don't require authentication
 const PUBLIC_BUCKETS = ['public'];
@@ -152,7 +152,7 @@ export async function GET(
   { params }: { params: Promise<{ bucket: string; path: string[] }> }
 ) {
   // Apply rate limiting for asset access
-  const rateLimitResponse = applyRateLimit(request, RATE_LIMIT_CONFIGS.asset);
+  const rateLimitResponse = applyRateLimit(request, RATE_LIMIT_CONFIGS.upload);
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
@@ -243,14 +243,17 @@ export async function GET(
 /**
  * Serve the actual asset file
  */
+/**
+ * @turbopackIgnore - Dynamic filesystem operation
+ */
 async function serveAsset(bucket: string, filePath: string, request: NextRequest): Promise<NextResponse> {
   // Sanitize path to prevent directory traversal
   const sanitizedPath = filePath.replace(/\.\./g, '').replace(/\/+/g, '/');
 
-  // Build file path
+  // Build file path with inline ignore comment
   const fullPath = path.join(/*turbopackIgnore: true*/ STORAGE_PATH, bucket, sanitizedPath);
-  const resolvedPath = path.resolve(/*turbopackIgnore: true*/ fullPath);
-  const resolvedBucketPath = path.resolve(/*turbopackIgnore: true*/ STORAGE_PATH, bucket);
+  const resolvedPath = path.resolve(fullPath);
+  const resolvedBucketPath = path.resolve(STORAGE_PATH, bucket);
 
   // Ensure we're not reading outside the bucket directory
   if (!resolvedPath.startsWith(resolvedBucketPath)) {
@@ -272,7 +275,7 @@ async function serveAsset(bucket: string, filePath: string, request: NextRequest
     const fileBuffer = await readFile(resolvedPath);
     const fileStats = await stat(resolvedPath);
 
-    // Determine content type
+    // Get file extension
     const ext = path.extname(resolvedPath).toLowerCase();
     const contentTypes: Record<string, string> = {
       '.jpg': 'image/jpeg',
@@ -302,7 +305,7 @@ async function serveAsset(bucket: string, filePath: string, request: NextRequest
     });
 
     // Add rate limit headers
-    const rateLimitHeaders = getRateLimitHeaders(request, RATE_LIMIT_CONFIGS.asset);
+    const rateLimitHeaders = getRateLimitHeaders(request, RATE_LIMIT_CONFIGS.upload);
     for (const [key, value] of Object.entries(rateLimitHeaders)) {
       response.headers.set(key, value);
     }

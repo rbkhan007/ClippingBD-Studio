@@ -25,7 +25,14 @@ import {
   Monitor,
   ChevronDown,
   CreditCard,
+  MessageSquare,
+  FileBarChart,
+  Activity,
+  Zap,
+  RefreshCw,
+  Layers,
 } from 'lucide-react';
+import { RealtimeStatus } from '@/hooks/useRealtimeAdmin';
 import { cn } from '@/lib/utils';
 import { useState, useRef } from 'react';
 import { LucideIcon } from 'lucide-react';
@@ -46,12 +53,26 @@ interface AdminSidebarProps {
 const mainNavItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
+];
+
+const crmNavItems: NavItem[] = [
   { id: 'users', label: 'User CRM', icon: Users, path: '/admin/users' },
-  { id: 'orders', label: 'Orders', icon: Package, path: '/admin/orders', badge: 12 },
-  { id: 'services', label: 'Services', icon: Briefcase, path: '/admin/services' },
-  { id: 'payments', label: 'Payments', icon: CreditCard, path: '/admin/payments' },
+  { id: 'orders', label: 'Orders CRM', icon: Package, path: '/admin/orders', badge: 12 },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/admin/messages', badge: 5 },
   { id: 'reviews', label: 'Reviews', icon: Star, path: '/admin/reviews' },
-  { id: 'cms', label: 'CMS', icon: FileText, path: '/admin/cms' },
+];
+
+const cmsNavItems: NavItem[] = [
+  { id: 'pages', label: 'Pages', icon: FileText, path: '/admin/cms/pages' },
+  { id: 'blog', label: 'Blog Posts', icon: FileBarChart, path: '/admin/cms/blog' },
+  { id: 'services', label: 'Services', icon: Briefcase, path: '/admin/services' },
+  { id: 'faq', label: 'FAQs', icon: Layers, path: '/admin/cms/faq' },
+];
+
+const financeNavItems: NavItem[] = [
+  { id: 'payments', label: 'Payments', icon: CreditCard, path: '/admin/payments' },
+  { id: 'transactions', label: 'Transactions', icon: Activity, path: '/admin/transactions' },
+  { id: 'reports', label: 'Reports', icon: FileBarChart, path: '/admin/reports' },
 ];
 
 const settingsNavItems: NavItem[] = [
@@ -138,6 +159,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-emerald-500" />
             <span className="font-semibold text-sm">Admin Panel</span>
+            <RealtimeStatus />
           </div>
         )}
         <Button
@@ -164,10 +186,52 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           <div className="space-y-1">
             {!collapsed && (
               <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                Main Menu
+                Main
               </p>
             )}
             {mainNavItems.map((item) => (
+              <NavItemComponent key={item.id} item={item} />
+            ))}
+          </div>
+
+          <Separator className="mx-2" />
+
+          {/* CRM Section */}
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                CRM
+              </p>
+            )}
+            {crmNavItems.map((item) => (
+              <NavItemComponent key={item.id} item={item} />
+            ))}
+          </div>
+
+          <Separator className="mx-2" />
+
+          {/* CMS Section */}
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                CMS & Content
+              </p>
+            )}
+            {cmsNavItems.map((item) => (
+              <NavItemComponent key={item.id} item={item} />
+            ))}
+          </div>
+
+          <Separator className="mx-2" />
+
+          {/* Finance Section */}
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                Finance
+              </p>
+            )}
+            {financeNavItems.map((item) => (
               <NavItemComponent key={item.id} item={item} />
             ))}
           </div>
@@ -181,7 +245,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
                 Settings
               </p>
             )}
-            {settingsNavItems.map((item) => (
+            {settingsNavItems.slice(0, 3).map((item) => (
               <NavItemComponent key={item.id} item={item} />
             ))}
           </div>

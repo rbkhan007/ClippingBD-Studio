@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -47,6 +47,62 @@ const processSteps = [
   { step: 3, title: 'We Edit', description: 'Expert editors process', icon: Wand2 },
   { step: 4, title: 'Review', description: 'Preview and request revisions', icon: Eye },
   { step: 5, title: 'Download', description: 'Get your perfect files', icon: Download },
+];
+
+// Service data - currently static, will be replaced with CMS data
+const defaultServicesData = [
+  {
+    id: 'clipping-paths',
+    title: 'Precision Clipping Path',
+    subtitle: 'Pixel-Perfect Background Removal',
+    description: 'Hand-crafted clipping paths by expert editors who understand e-commerce. Every curve, every edge is traced with surgical precision for backgrounds that vanish seamlessly.',
+    features: [
+      '100% Hand-drawn paths (no auto-selection)',
+      'Up to 4000+ anchor points for complex items',
+      'Transparent, white, or custom backgrounds',
+      'Layered PSD/PSB delivery with editable paths',
+      'Jewelry, fashion, electronics, furniture experts',
+      'Amazon, eBay, Walmart compliance ready',
+    ],
+    pricing: { starting: '$0.20', unit: '/image' },
+    stats: { value: '50M+', label: 'Images Processed' },
+    gradient: 'from-emerald-500 to-green-600',
+    icon: 'Layers',
+  },
+  {
+    id: 'image-editing',
+    title: 'Professional Image Editing',
+    subtitle: 'Make Every Photo Sell',
+    description: 'From basic retouching to high-end beauty edits, our team transforms ordinary photos into conversion-driving assets. Color correction, shadow creation, and ghost mannequin services included.',
+    features: [
+      'High-end skin & beauty retouching',
+      'Natural shadow & reflection creation',
+      'Ghost mannequin for fashion brands',
+      'Color matching across product lines',
+      'Batch processing for consistent look',
+    ],
+    pricing: { starting: '$0.15', unit: '/image' },
+    stats: { value: '5M+', label: 'Images Edited' },
+    gradient: 'from-blue-500 to-purple-600',
+    icon: 'Palette',
+  },
+  {
+    id: 'video-editing',
+    title: 'Video Editing Services',
+    subtitle: 'Dynamic Product Videos',
+    description: 'Transform your products with engaging video content. We create clips that capture attention and drive conversions.',
+    features: [
+      'Product demo videos',
+      'Motion graphics and animations',
+      'Background replacement',
+      'Slow-motion effects',
+      'Multi-camera editing',
+    ],
+    pricing: { starting: '$50', unit: '/video' },
+    stats: { value: '100K+', label: 'Videos Created' },
+    gradient: 'from-purple-500 to-pink-600',
+    icon: 'Video',
+  },
 ];
 
 // Guarantees
@@ -1237,22 +1293,25 @@ export function WebServicePage() {
 
   const webPortfolio = [
     {
-      title: 'E-commerce Platform',
-      category: 'Web App',
-      description: 'Full-featured online store with custom checkout',
+      title: 'SaaS E-Services Platform',
+      category: 'Clipping BD Studio',
+      description: 'A full-stack Next.js SaaS solution featuring automated service workflows, secure client portals, role-based access control, and dynamic content management powered by Supabase.',
       gradient: 'from-emerald-500 to-teal-600',
+      link: 'https://clipping-bd-studio.vercel.app/',
     },
     {
-      title: 'SaaS Dashboard',
-      category: 'Web App',
-      description: 'Analytics dashboard for enterprise clients',
-      gradient: 'from-teal-500 to-cyan-600',
-    },
-    {
-      title: 'Portfolio Website',
-      category: 'Website',
-      description: 'Creative portfolio for photographer',
+      title: 'Enterprise E-commerce Platform',
+      category: 'Rainbow Retouch',
+      description: 'A high-conversion, SEO-optimized retail site built for speed. Leverages Server-Side Rendering (SSR) for instant SEO indexing and custom UI/UX focused on conversion rate optimization (CRO).',
       gradient: 'from-cyan-500 to-blue-600',
+      link: 'https://rainbowretouch.com/',
+    },
+    {
+      title: 'Modern Engineering Portfolio',
+      category: 'Portfolio Showcase',
+      description: 'Advanced frontend capabilities featuring clean code practices, TypeScript implementation, smooth Framer Motion animations, and a 100/100 performance score on mobile.',
+      gradient: 'from-purple-500 to-pink-600',
+      link: 'https://rakibul-hasan-protfolio.vercel.app/',
     },
   ];
   
@@ -1373,25 +1432,22 @@ export function WebServicePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                 >
-                  <Card
-                    className="glass-card overflow-hidden hover:border-indigo-500/30 transition-all cursor-pointer group"
-                    onClick={() => handleNavigate('/pricing')}
-                  >
-                    <div className={`h-48 bg-gradient-to-br ${item.gradient} flex items-center justify-center`}>
-                      <Globe className="w-16 h-16 text-white/50 group-hover:scale-110 transition-transform" />
-                    </div>
-                    <CardContent className="p-4">
-                      <Badge className="mb-2 bg-indigo-500/10 border-indigo-500/30 text-indigo-400 text-xs">
-                        {item.category}
-                      </Badge>
-                      <h3 className="font-semibold mb-1">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                      <div className="flex items-center text-indigo-400 text-xs mt-2 group-hover:text-purple-400 transition-colors">
-                        View Pricing
-                        <ChevronRight className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform" />
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="block h-full">
+                    <Card
+                      className="glass-card overflow-hidden hover:border-indigo-500/30 transition-all cursor-pointer group h-full"
+                    >
+                      <div className={`h-48 bg-gradient-to-br ${item.gradient} flex items-center justify-center`}>
+                        <Globe className="w-16 h-16 text-white/50 group-hover:scale-110 transition-transform" />
                       </div>
-                    </CardContent>
-                  </Card>
+                      <CardContent className="p-4">
+                        <Badge className="mb-2 bg-indigo-500/10 border-indigo-500/30 text-indigo-400 text-xs">
+                          {item.category}
+                        </Badge>
+                        <h3 className="font-semibold mb-1">{item.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                      </CardContent>
+                    </Card>
+                  </a>
                 </motion.div>
               ))}
             </div>

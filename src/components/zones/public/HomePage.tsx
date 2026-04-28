@@ -30,11 +30,15 @@ import {
   useCmsTestimonials,
 } from '@/hooks/realtime/use-cms-realtime';
 
-// Dynamic import for 3D scene (client-side only)
-const ThreeScene = dynamic(() => import('@/components/three/ThreeScene'), {
-  ssr: false,
-  loading: () => <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black -z-10" />
-});
+// Simple background gradient instead of ThreeScene for stability
+function BackgroundGradient() {
+  return (
+    <div className="absolute inset-0 -z-10 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-background to-cyan-950/20" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent" />
+    </div>
+  );
+}
 
 // Animation variants
 const fadeInUp = {
@@ -193,7 +197,7 @@ export function HomePage() {
     <div className="relative">
       {/* 3D Background */}
       <Suspense fallback={<div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black -z-10" />}>
-        <ThreeScene />
+        <BackgroundGradient />
       </Suspense>
 
       {/* Hero Section */}

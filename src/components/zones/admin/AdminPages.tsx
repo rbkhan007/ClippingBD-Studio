@@ -8,13 +8,13 @@ import {
   Download, RefreshCw, Server, Cpu, HardDrive, Wifi, Zap,
   UserPlus, Edit, Trash2, MoreVertical, Search, Filter,
   Bell, Lock, Palette, Globe, Mail, Phone, Camera, Save,
-  ChevronRight, ChevronUp, ChevronDown, ArrowUpRight, ArrowDownRight, Clock, Calendar,
+  ChevronRight, ChevronUp, ChevronDown, ChevronLeft, ChevronsLeft, ChevronsRight, ArrowUpRight, ArrowDownRight, Clock, Calendar,
   CreditCard, Package, Star, Target, PieChart, LineChart,
   AlertCircle, Info, X, Check, Plus, Minus, ExternalLink,
   Key, Smartphone, Monitor, LogOut, FileText, Cloud, DatabaseBackup,
   BarChart2, TrendingDown, Layers, Gift, Award, Briefcase, Image as ImageIcon,
   Video, Wand2, Clock3, Upload, FileDown, FileSpreadsheet, Printer,
-  LayoutDashboard, LucideIcon
+  LayoutDashboard, LucideIcon, MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -99,6 +99,24 @@ const departmentData = [
   { name: 'Color Correction', value: 15, color: '#06b6d4' },
   { name: 'Web Development', value: 10, color: '#0891b2' },
   { name: 'Motion Graphics', value: 5, color: '#0e7490' },
+];
+
+const userGrowthData = [
+  { month: 'Jan', users: 1200, newUsers: 85 },
+  { month: 'Feb', users: 1350, newUsers: 150 },
+  { month: 'Mar', users: 1480, newUsers: 130 },
+  { month: 'Apr', users: 1620, newUsers: 140 },
+  { month: 'May', users: 1750, newUsers: 130 },
+  { month: 'Jun', users: 1803, newUsers: 53 },
+];
+
+const servicePerformanceData = [
+  { service: 'Clipping Path', completed: 1250, avgTime: '2.5h', rating: 4.8, revenue: 25000 },
+  { service: 'Retouching', completed: 890, avgTime: '3.2h', rating: 4.7, revenue: 17800 },
+  { service: 'Color Correction', completed: 645, avgTime: '1.8h', rating: 4.9, revenue: 12900 },
+  { service: 'Background Removal', completed: 520, avgTime: '1.5h', rating: 4.6, revenue: 10400 },
+  { service: 'Image Masking', completed: 380, avgTime: '2.1h', rating: 4.8, revenue: 7600 },
+  { service: 'Shadow Creation', completed: 290, avgTime: '1.2h', rating: 4.5, revenue: 5800 },
 ];
 
 const hourlyActivity = [
@@ -501,1309 +519,9 @@ export function AdminDashboard() {
           <SystemStatusCard />
         </div>
       </div>
-    </div>
-  );
-}
 
-// Admin Analytics Component
-export function AdminAnalytics() {
-  const [isLive, setIsLive] = useState(true);
-  const [timeRange, setTimeRange] = useState('7d');
-  const [dashboardData, setDashboardData] = useState<{
-    charts?: { revenueTrend: Array<{ month: string; revenue: number }>; tasksByDepartment: Array<{ department: string; count: number }> };
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAppStore();
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/admin/statistics?scope=dashboard', {
-          credentials: 'include',
-        });
-        
-        if (!response.ok) throw new Error('Failed to fetch analytics');
-        const data = await response.json();
-        
-        setDashboardData({
-          charts: {
-            revenueTrend: (data.revenueTrend || []) as Array<{ month: string; revenue: number }>,
-            tasksByDepartment: data.tasksByDepartment ? Object.entries(data.tasksByDepartment).map(([department, count]) => ({ department, count: Number(count) })) : [],
-          },
-        });
-      } catch (error) {
-        console.error('Failed to fetch analytics data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsLive(true);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const kpiData: KPIData[] = [
-    { label: 'Total Revenue', value: 45250, change: 16.3, prefix: '$', icon: DollarSign, trend: 'up' },
-    { label: 'Total Orders', value: 1247, change: 14.5, icon: Package, trend: 'up' },
-    { label: 'Active Users', value: 892, change: 18.0, icon: Users, trend: 'up' },
-    { label: 'Completion Rate', value: 98.5, change: 1.3, suffix: '%', icon: CheckCircle, trend: 'up' },
-  ];
-
-  const chartRevenueData = dashboardData?.charts?.revenueTrend || revenueData;
-  const chartDepartmentData = dashboardData?.charts?.tasksByDepartment?.map((d, i) => ({
-    name: d.department,
-    value: d.count,
-    color: ['#10b981', '#14b8a6', '#06b6d4', '#0891b2', '#0e7490'][i % 5],
-  })) || departmentData;
-
-  const departmentStats = [
-    { name: 'Clipping Path', active: 12, completed: 324, avgTime: '45min', efficiency: 95 },
-    { name: 'Retouching', active: 8, completed: 156, avgTime: '1.2h', efficiency: 88 },
-    { name: 'Color Correction', active: 5, completed: 89, avgTime: '35min', efficiency: 92 },
-    { name: 'Motion Graphics', active: 3, completed: 23, avgTime: '3h', efficiency: 85 },
-  ];
-
-  return (
-    <div className="py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-bold">Global Analytics</h1>
-              <RealtimeIndicator isLive={isLive} />
-            </div>
-            <p className="text-muted-foreground">System-wide performance metrics</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <RoleAccessIndicator requiredRole="ADMIN" currentRole={user?.role || 'GUEST'} />
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-32 bg-muted/30 dark:bg-white/5 border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="24h">24 Hours</SelectItem>
-                <SelectItem value="7d">7 Days</SelectItem>
-                <SelectItem value="30d">30 Days</SelectItem>
-                <SelectItem value="90d">90 Days</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* KPI Cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {kpiData.map((kpi, idx) => (
-            <motion.div
-              key={kpi.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-            >
-              <Card className="glass-card hover:border-emerald-500 transition-all">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-muted-foreground">{kpi.label}</span>
-                    <div className="flex items-center gap-1">
-                      <kpi.icon className="w-4 h-4 text-muted-foreground" />
-                      {kpi.trend === 'up' ? (
-                        <ArrowUpRight className="w-3 h-3 text-emerald-400" />
-                      ) : (
-                        <ArrowDownRight className="w-3 h-3 text-red-400" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-3xl font-bold mb-1">
-                    {kpi.prefix || ''}{kpi.value.toLocaleString()}{kpi.suffix || ''}
-                  </div>
-                  <div className={`text-sm flex items-center gap-1 ${kpi.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {kpi.change >= 0 ? '↑' : '↓'} {Math.abs(kpi.change)}% vs last period
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-8">
-          {/* Revenue Chart */}
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
-                Revenue Trend
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-64">
-                <AreaChart data={chartRevenueData}>
-                  <defs>
-                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                  <YAxis stroke="#64748b" fontSize={12} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area type="monotone" dataKey="revenue" stroke="#10b981" fill="url(#revenueGradient)" strokeWidth={2} />
-                </AreaChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          {/* Department Distribution */}
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="w-5 h-5 text-cyan-400" />
-                Department Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-64">
-                <RechartsPieChart>
-                  <Pie
-                    data={chartDepartmentData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {chartDepartmentData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </RechartsPieChart>
-              </ChartContainer>
-              <div className="flex flex-wrap justify-center gap-4 mt-4">
-                {chartDepartmentData.map((dept) => (
-                  <div key={dept.name} className="flex items-center gap-2 text-sm">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: dept.color }} />
-                    <span className="text-muted-foreground">{dept.name}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Activity & Departments */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Hourly Activity */}
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-cyan-400" />
-                Hourly Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-48">
-                <BarChart data={hourlyActivity}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis dataKey="hour" stroke="#64748b" fontSize={10} />
-                  <YAxis stroke="#64748b" fontSize={10} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="active" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          {/* Department Performance */}
-          <Card className="glass-card lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Department Performance</CardTitle>
-              <CardDescription>Real-time department metrics</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {departmentStats.map((dept, idx) => (
-                  <motion.div
-                    key={dept.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="p-4 rounded-lg bg-muted/30 dark:bg-white/5 hover:bg-accent dark:hover:bg-white/10 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <h4 className="font-medium">{dept.name}</h4>
-                        <p className="text-sm text-muted-foreground">{dept.completed} completed today</p>
-                      </div>
-                      <div className="flex items-center gap-6 text-sm">
-                        <div className="text-center">
-                          <p className="text-muted-foreground">Active</p>
-                          <p className="font-bold text-lg text-emerald-400">{dept.active}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-muted-foreground">Avg Time</p>
-                          <p className="font-bold text-lg">{dept.avgTime}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-muted-foreground">Efficiency</p>
-                          <p className="font-bold text-lg text-cyan-400">{dept.efficiency}%</p>
-                        </div>
-                      </div>
-                    </div>
-                    <Progress value={dept.efficiency} className="h-1" />
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Admin Users Component (User CRM)
-export function AdminUsers() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterRole, setFilterRole] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [scrollDirection, setScrollDirection] = useState<'top' | 'bottom'>('top');
-  const { user: currentUser } = useAppStore();
-
-  const handleScroll = (direction: 'top' | 'bottom') => {
-    const scrollContainer = document.getElementById('users-table-scroll');
-    if (scrollContainer) {
-      const viewport = scrollContainer.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
-      if (viewport) {
-        viewport.scrollTo({
-          top: direction === 'top' ? 0 : viewport.scrollHeight,
-          behavior: 'smooth',
-        });
-      } else {
-        scrollContainer.scrollTo({
-          top: direction === 'top' ? 0 : scrollContainer.scrollHeight,
-          behavior: 'smooth',
-        });
-      }
-      setScrollDirection(direction);
-    }
-  };
-
-  // Fetch users from API
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const params = new URLSearchParams();
-        if (filterRole !== 'all') params.append('role', filterRole);
-        if (filterStatus !== 'all') params.append('status', filterStatus);
-        if (searchQuery) params.append('search', searchQuery);
-        
-        const response = await fetch(`/api/users?${params.toString()}`, {
-          credentials: 'include',
-        });
-        
-        if (!response.ok) throw new Error('Failed to fetch users');
-        const data = await response.json();
-        if (!data.users) throw new Error('Invalid response');
-        
-        const mappedUsers = data.users.map((u: Record<string, unknown>) => ({
-          id: u.id as string,
-          name: (u.name as string) || 'Unknown',
-          email: u.email as string,
-          role: u.role as UserRole,
-          status: u.status as UserStatus,
-          balance: (u.walletBalance as number) || 0,
-          avatar: u.avatar as string | undefined,
-          joinedAt: new Date(u.createdAt as string).toLocaleDateString(),
-          lastActive: u.lastLoginAt ? new Date(u.lastLoginAt as string).toLocaleDateString() : 'Never',
-          orders: (u._count as { orders?: number })?.orders || 0,
-          spent: 0,
-        }));
-        setUsers(mappedUsers);
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [filterRole, filterStatus, searchQuery]);
-
-  const filteredUsers = users;
-
-  const getRoleBadge = (role: UserRole) => {
-    const styles: Record<UserRole, string> = {
-      GUEST: 'bg-slate-500/20 text-muted-foreground',
-      CLIENT: 'bg-blue-500/20 text-blue-400',
-      EDITOR: 'bg-purple-500/20 text-purple-400',
-      QA: 'bg-amber-500/20 text-amber-400',
-      ADMIN: 'bg-emerald-500/30 dark:bg-emerald-500/20 text-emerald-400',
-      DEVELOPER: 'bg-cyan-500/20 text-cyan-400',
-    };
-    return <Badge className={styles[role]}>{role}</Badge>;
-  };
-
-  const getStatusBadge = (status: UserStatus) => {
-    const styles: Record<UserStatus, string> = {
-      PENDING: 'bg-amber-500/20 text-amber-400',
-      ACTIVE: 'bg-emerald-500/30 dark:bg-emerald-500/20 text-emerald-400',
-      SUSPENDED: 'bg-amber-500/20 text-amber-400',
-      BANNED: 'bg-red-500/20 text-red-400',
-    };
-    return <Badge className={styles[status]}>{status}</Badge>;
-  };
-
-  const handleRoleChange = (userId: string, newRole: UserRole) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-  };
-
-  const handleStatusChange = (userId: string, newStatus: UserStatus) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: newStatus } : u));
-  };
-
-  return (
-    <div className="py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-1">User CRM</h1>
-            <p className="text-muted-foreground">Manage users and permissions</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <RoleAccessIndicator requiredRole="ADMIN" currentRole={currentUser?.role || 'GUEST'} />
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-emerald-500 to-teal-600">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Add User
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="glass-card">
-                <DialogHeader>
-                  <DialogTitle>Add New User</DialogTitle>
-                  <DialogDescription>Create a new user account</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Name</Label>
-                    <Input placeholder="Full name" className="bg-muted/30 dark:bg-white/5 border-border" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input placeholder="email@example.com" type="email" className="bg-muted/30 dark:bg-white/5 border-border" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Role</Label>
-                    <Select>
-                      <SelectTrigger className="bg-muted/30 dark:bg-white/5 border-border">
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CLIENT">Client</SelectItem>
-                        <SelectItem value="EDITOR">Editor</SelectItem>
-                        <SelectItem value="QA">QA</SelectItem>
-                        <SelectItem value="ADMIN">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" className="border-border">Cancel</Button>
-                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-600">Create User</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          {[
-            { label: 'Total Users', value: users.length, color: 'text-white' },
-            { label: 'Clients', value: users.filter(u => u.role === 'CLIENT').length, color: 'text-blue-400' },
-            { label: 'Editors', value: users.filter(u => u.role === 'EDITOR').length, color: 'text-purple-400' },
-            { label: 'QA', value: users.filter(u => u.role === 'QA').length, color: 'text-amber-400' },
-            { label: 'Admins', value: users.filter(u => ['ADMIN', 'DEVELOPER'].includes(u.role)).length, color: 'text-emerald-400' },
-          ].map((stat) => (
-            <Card key={stat.label} className="glass-card">
-              <CardContent className="p-4 text-center">
-                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-muted/30 dark:bg-white/5 border-border"
-            />
-          </div>
-          <Select value={filterRole} onValueChange={setFilterRole}>
-            <SelectTrigger className="w-full sm:w-40 bg-muted/30 dark:bg-white/5 border-border">
-              <SelectValue placeholder="Role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value="CLIENT">Client</SelectItem>
-              <SelectItem value="EDITOR">Editor</SelectItem>
-              <SelectItem value="QA">QA</SelectItem>
-              <SelectItem value="ADMIN">Admin</SelectItem>
-              <SelectItem value="DEVELOPER">Developer</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-full sm:w-40 bg-muted/30 dark:bg-white/5 border-border">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="SUSPENDED">Suspended</SelectItem>
-              <SelectItem value="BANNED">Banned</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* User Table */}
-        <Card className="glass-card overflow-hidden relative">
-          <ScrollArea className="max-h-[600px]" id="users-table-scroll">
-            <table className="w-full">
-              <thead className="sticky top-0 bg-card/95 backdrop-blur z-10">
-                <tr className="border-b border-border">
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">User</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Role</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Activity</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Stats</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <AnimatePresence>
-                  {filteredUsers.map((u, idx) => (
-                    <motion.tr
-                      key={u.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="border-b border-border/50 hover:bg-muted/30 dark:bg-white/5 transition-colors"
-                    >
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={u.avatar} />
-                            <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600">
-                              {u.name?.split(' ')?.slice(0, 2)?.map(n => n?.[0])?.join('') || '?'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{u.name}</p>
-                            <p className="text-sm text-muted-foreground">{u.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">{getRoleBadge(u.role)}</td>
-                      <td className="p-4">{getStatusBadge(u.status)}</td>
-                      <td className="p-4">
-                        <div>
-                          <p className="text-sm">Last: {u.lastActive}</p>
-                          <p className="text-xs text-muted-foreground">Joined: {u.joinedAt}</p>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        {u.role === 'CLIENT' && (
-                          <div className="text-sm">
-                            <p>{u.orders} orders</p>
-                            <p className="text-muted-foreground">${u.spent} spent</p>
-                          </div>
-                        )}
-                        {u.role !== 'CLIENT' && (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex justify-end items-center gap-2">
-                          <Select value={u.role} onValueChange={(value) => handleRoleChange(u.id, value as UserRole)}>
-                            <SelectTrigger className="w-24 h-8 bg-muted/30 dark:bg-white/5 border-border text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="CLIENT">Client</SelectItem>
-                              <SelectItem value="EDITOR">Editor</SelectItem>
-                              <SelectItem value="QA">QA</SelectItem>
-                              <SelectItem value="ADMIN">Admin</SelectItem>
-                              <SelectItem value="DEVELOPER">Dev</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setSelectedUser(u)}>
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit User
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              {u.status === 'ACTIVE' ? (
-                                <DropdownMenuItem onClick={() => handleStatusChange(u.id, 'SUSPENDED')} className="text-amber-400">
-                                  <AlertCircle className="w-4 h-4 mr-2" />
-                                  Suspend
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onClick={() => handleStatusChange(u.id, 'ACTIVE')} className="text-emerald-400">
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Activate
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem onClick={() => handleStatusChange(u.id, 'BANNED')} className="text-red-400">
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Ban User
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </ScrollArea>
-          
-          <div className="absolute bottom-4 right-4 flex gap-2 z-20">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8 rounded-full shadow-lg"
-              onClick={() => handleScroll('top')}
-              title="Scroll to top"
-            >
-              <ChevronUp className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8 rounded-full shadow-lg"
-              onClick={() => handleScroll('bottom')}
-              title="Scroll to bottom"
-            >
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-// Admin Settings Component
-export function AdminSettings() {
-  const { user } = useAppStore();
-  const [activeTab, setActiveTab] = useState('general');
-
-  // General Settings State
-  const [generalSettings, setGeneralSettings] = useState({
-    siteName: 'ClippingPath & Website Services Studio',
-    siteDescription: 'Professional Image Editing Services',
-    logoUrl: '/icon', // Dynamic favicon route
-    timezone: 'UTC-5',
-    language: 'en',
-    dateFormat: 'MM/DD/YYYY',
-  });
-
-  // Security Settings State
-  const [securitySettings, setSecuritySettings] = useState({
-    twoFactorEnabled: false,
-    sessionTimeout: 30,
-    maxLoginAttempts: 5,
-    passwordExpiry: 90,
-    ipWhitelist: [] as string[],
-  });
-
-  // Notification Settings State
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    smsNotifications: false,
-    orderUpdates: true,
-    systemAlerts: true,
-    marketingEmails: false,
-    weeklyReports: true,
-  });
-
-  // API Keys State
-  const [apiKeys, setApiKeys] = useState([
-    { id: '1', name: 'Production API Key', key: 'pk_live_**********************', created: '2024-01-15', lastUsed: '2 hours ago' },
-    { id: '2', name: 'Test API Key', key: 'pk_test_**********************', created: '2024-02-20', lastUsed: '5 days ago' },
-  ]);
-
-  const handleSaveSettings = () => {
-    // Save settings logic
-  };
-
-  return (
-    <div className="py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-1">Settings</h1>
-            <p className="text-muted-foreground">Manage system configuration</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <RoleAccessIndicator requiredRole="ADMIN" currentRole={user?.role || 'GUEST'} />
-            <Button onClick={handleSaveSettings} className="bg-gradient-to-r from-emerald-500 to-teal-600">
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
-            </Button>
-          </div>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-muted/30 dark:bg-white/5 border border-border">
-            <TabsTrigger value="general" className="data-[state=active]:bg-emerald-500/30 dark:bg-emerald-500/20 data-[state=active]:text-emerald-400">
-              <Settings className="w-4 h-4 mr-2" />
-              General
-            </TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-emerald-500/30 dark:bg-emerald-500/20 data-[state=active]:text-emerald-400">
-              <Lock className="w-4 h-4 mr-2" />
-              Security
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-emerald-500/30 dark:bg-emerald-500/20 data-[state=active]:text-emerald-400">
-              <Bell className="w-4 h-4 mr-2" />
-              Notifications
-            </TabsTrigger>
-            <TabsTrigger value="api" className="data-[state=active]:bg-emerald-500/30 dark:bg-emerald-500/20 data-[state=active]:text-emerald-400">
-              <Key className="w-4 h-4 mr-2" />
-              API Keys
-            </TabsTrigger>
-          </TabsList>
-
-          {/* General Settings Tab */}
-          <TabsContent value="general">
-            <div className="space-y-6">
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-emerald-400" />
-                    Site Information
-                  </CardTitle>
-                  <CardDescription>Basic site configuration</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Site Name</Label>
-                      <Input
-                        value={generalSettings.siteName}
-                        onChange={(e) => setGeneralSettings(prev => ({ ...prev, siteName: e.target.value }))}
-                        className="bg-muted/30 dark:bg-white/5 border-border"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Language</Label>
-                      <Select
-                        value={generalSettings.language}
-                        onValueChange={(v) => setGeneralSettings(prev => ({ ...prev, language: v }))}
-                      >
-                        <SelectTrigger className="bg-muted/30 dark:bg-white/5 border-border">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Spanish</SelectItem>
-                          <SelectItem value="fr">French</SelectItem>
-                          <SelectItem value="de">German</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Site Description</Label>
-                    <Textarea
-                      value={generalSettings.siteDescription}
-                      onChange={(e) => setGeneralSettings(prev => ({ ...prev, siteDescription: e.target.value }))}
-                      className="bg-muted/30 dark:bg-white/5 border-border"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Camera className="w-4 h-4" />
-                      Logo URL
-                    </Label>
-                    <div className="flex gap-4">
-                      <Input
-                        value={generalSettings.logoUrl}
-                        onChange={(e) => setGeneralSettings(prev => ({ ...prev, logoUrl: e.target.value }))}
-                        className="bg-muted/30 dark:bg-white/5 border-border flex-1"
-                      />
-                      <Button variant="outline" className="border-border">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-cyan-400" />
-                    Regional Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Timezone</Label>
-                      <Select
-                        value={generalSettings.timezone}
-                        onValueChange={(v) => setGeneralSettings(prev => ({ ...prev, timezone: v }))}
-                      >
-                        <SelectTrigger className="bg-muted/30 dark:bg-white/5 border-border">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="UTC">UTC</SelectItem>
-                          <SelectItem value="UTC-5">UTC-5 (Eastern)</SelectItem>
-                          <SelectItem value="UTC-8">UTC-8 (Pacific)</SelectItem>
-                          <SelectItem value="UTC+1">UTC+1 (Central Europe)</SelectItem>
-                          <SelectItem value="UTC+6">UTC+6 (Bangladesh)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Date Format</Label>
-                      <Select
-                        value={generalSettings.dateFormat}
-                        onValueChange={(v) => setGeneralSettings(prev => ({ ...prev, dateFormat: v }))}
-                      >
-                        <SelectTrigger className="bg-muted/30 dark:bg-white/5 border-border">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                          <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                          <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Security Settings Tab */}
-          <TabsContent value="security">
-            <div className="space-y-6">
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-emerald-400" />
-                    Authentication
-                  </CardTitle>
-                  <CardDescription>Configure security settings</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 dark:bg-white/5">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-purple-500/20">
-                        <Smartphone className="w-5 h-5 text-purple-400" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Two-Factor Authentication</p>
-                        <p className="text-sm text-muted-foreground">Require 2FA for all admin accounts</p>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={securitySettings.twoFactorEnabled}
-                      onCheckedChange={(checked) => setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: checked }))}
-                    />
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Session Timeout (minutes)</Label>
-                      <Select
-                        value={securitySettings.sessionTimeout.toString()}
-                        onValueChange={(v) => setSecuritySettings(prev => ({ ...prev, sessionTimeout: parseInt(v) }))}
-                      >
-                        <SelectTrigger className="bg-muted/30 dark:bg-white/5 border-border">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="15">15 minutes</SelectItem>
-                          <SelectItem value="30">30 minutes</SelectItem>
-                          <SelectItem value="60">1 hour</SelectItem>
-                          <SelectItem value="120">2 hours</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Max Login Attempts</Label>
-                      <Select
-                        value={securitySettings.maxLoginAttempts.toString()}
-                        onValueChange={(v) => setSecuritySettings(prev => ({ ...prev, maxLoginAttempts: parseInt(v) }))}
-                      >
-                        <SelectTrigger className="bg-muted/30 dark:bg-white/5 border-border">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="3">3 attempts</SelectItem>
-                          <SelectItem value="5">5 attempts</SelectItem>
-                          <SelectItem value="10">10 attempts</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Password Expiry (days)</Label>
-                    <Select
-                      value={securitySettings.passwordExpiry.toString()}
-                      onValueChange={(v) => setSecuritySettings(prev => ({ ...prev, passwordExpiry: parseInt(v) }))}
-                    >
-                      <SelectTrigger className="bg-muted/30 dark:bg-white/5 border-border">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="30">30 days</SelectItem>
-                        <SelectItem value="60">60 days</SelectItem>
-                        <SelectItem value="90">90 days</SelectItem>
-                        <SelectItem value="0">Never</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Monitor className="w-5 h-5 text-cyan-400" />
-                    Active Sessions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {[
-                    { device: 'Chrome on Windows', location: 'New York, US', current: true },
-                    { device: 'Safari on iPhone', location: 'Los Angeles, US', current: false },
-                    { device: 'Firefox on MacOS', location: 'London, UK', current: false },
-                  ].map((session, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 dark:bg-white/5">
-                      <div className="flex items-center gap-3">
-                        <Monitor className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{session.device}</p>
-                          <p className="text-sm text-muted-foreground">{session.location}</p>
-                        </div>
-                        {session.current && (
-                          <Badge className="bg-emerald-500/30 dark:bg-emerald-500/20 text-emerald-400">Current</Badge>
-                        )}
-                      </div>
-                      {!session.current && (
-                        <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300">
-                          <LogOut className="w-4 h-4 mr-2" />
-                          Revoke
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button variant="outline" className="w-full border-border text-red-400 hover:text-red-300">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out All Other Sessions
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Notifications Settings Tab */}
-          <TabsContent value="notifications">
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-amber-400" />
-                  Notification Preferences
-                </CardTitle>
-                <CardDescription>Configure how you receive notifications</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium text-foreground/80 mb-3">Delivery Methods</h4>
-                  {[
-                    { key: 'emailNotifications', label: 'Email Notifications', desc: 'Receive notifications via email' },
-                    { key: 'pushNotifications', label: 'Push Notifications', desc: 'Browser and mobile push notifications' },
-                    { key: 'smsNotifications', label: 'SMS Notifications', desc: 'Critical alerts via SMS' },
-                  ].map((item) => (
-                    <div key={item.key} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 dark:bg-white/5">
-                      <div>
-                        <p className="font-medium">{item.label}</p>
-                        <p className="text-sm text-muted-foreground">{item.desc}</p>
-                      </div>
-                      <Switch
-                        checked={notificationSettings[item.key as keyof typeof notificationSettings] as boolean}
-                        onCheckedChange={(checked) =>
-                          setNotificationSettings(prev => ({ ...prev, [item.key]: checked }))
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                <Separator className="bg-white/10" />
-
-                <div className="space-y-1">
-                  <h4 className="text-sm font-medium text-foreground/80 mb-3">Notification Types</h4>
-                  {[
-                    { key: 'orderUpdates', label: 'Order Updates', desc: 'New orders, status changes, completions' },
-                    { key: 'systemAlerts', label: 'System Alerts', desc: 'Server issues, security warnings' },
-                    { key: 'marketingEmails', label: 'Marketing Emails', desc: 'Promotions, newsletters' },
-                    { key: 'weeklyReports', label: 'Weekly Reports', desc: 'Summary of weekly activity' },
-                  ].map((item) => (
-                    <div key={item.key} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 dark:bg-white/5">
-                      <div>
-                        <p className="font-medium">{item.label}</p>
-                        <p className="text-sm text-muted-foreground">{item.desc}</p>
-                      </div>
-                      <Switch
-                        checked={notificationSettings[item.key as keyof typeof notificationSettings] as boolean}
-                        onCheckedChange={(checked) =>
-                          setNotificationSettings(prev => ({ ...prev, [item.key]: checked }))
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* API Keys Tab */}
-          <TabsContent value="api">
-            <div className="space-y-6">
-              <Card className="glass-card">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Key className="w-5 h-5 text-cyan-400" />
-                        API Keys
-                      </CardTitle>
-                      <CardDescription>Manage API keys for integrations</CardDescription>
-                    </div>
-                    <Button className="bg-gradient-to-r from-emerald-500 to-teal-600">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Generate New Key
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {apiKeys.map((apiKey) => (
-                    <div key={apiKey.id} className="p-4 rounded-lg bg-muted/30 dark:bg-white/5 border border-border">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <p className="font-medium">{apiKey.name}</p>
-                          <p className="text-sm text-muted-foreground">Created: {apiKey.created}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 p-2 rounded bg-slate-800/50">
-                        <code className="text-sm text-emerald-400 flex-1">{apiKey.key}</code>
-                        <Button variant="ghost" size="sm">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2">Last used: {apiKey.lastUsed}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-purple-400" />
-                    API Documentation
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    Integrate ClippingPath & Website Services Studio with your applications using our REST API.
-                  </p>
-                  <Button variant="outline" className="border-border">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    View Documentation
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-}
-
-// Admin Reports Component
-export function AdminReports() {
-  const { user } = useAppStore();
-  const [dateRange, setDateRange] = useState('30d');
-  const [reportType, setReportType] = useState('revenue');
-  const [scrollDirection, setScrollDirection] = useState<'top' | 'bottom'>('top');
-
-  const handleScroll = (containerId: string, direction: 'top' | 'bottom') => {
-    const el = document.getElementById(containerId);
-    if (el) {
-      const viewport = el.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement;
-      if (viewport) {
-        viewport.scrollTo({ top: direction === 'top' ? 0 : viewport.scrollHeight, behavior: 'smooth' });
-      } else {
-        el.scrollTo({ top: direction === 'top' ? 0 : el.scrollHeight, behavior: 'smooth' });
-      }
-      setScrollDirection(direction);
-    }
-  };
-
-  // Mock data for reports
-  const revenueReportData = [
-    { period: 'Week 1', revenue: 8200, orders: 156, avgOrderValue: 52.56 },
-    { period: 'Week 2', revenue: 9100, orders: 178, avgOrderValue: 51.12 },
-    { period: 'Week 3', revenue: 7850, orders: 142, avgOrderValue: 55.28 },
-    { period: 'Week 4', revenue: 10200, orders: 198, avgOrderValue: 51.52 },
-  ];
-
-  const userGrowthData = [
-    { month: 'Jan', users: 120, newUsers: 45 },
-    { month: 'Feb', users: 185, newUsers: 65 },
-    { month: 'Mar', users: 245, newUsers: 60 },
-    { month: 'Apr', users: 320, newUsers: 75 },
-    { month: 'May', users: 410, newUsers: 90 },
-    { month: 'Jun', users: 520, newUsers: 110 },
-  ];
-
-  const servicePerformanceData = [
-    { service: 'Clipping Path', completed: 1245, avgTime: '45 min', rating: 4.9, revenue: 24500 },
-    { service: 'Retouching', completed: 856, avgTime: '1.2 hr', rating: 4.8, revenue: 18200 },
-    { service: 'Color Correction', completed: 423, avgTime: '35 min', rating: 4.7, revenue: 8500 },
-    { service: 'Background Removal', completed: 1567, avgTime: '20 min', rating: 4.9, revenue: 15600 },
-    { service: 'Image Masking', completed: 234, avgTime: '2 hr', rating: 4.6, revenue: 9200 },
-  ];
-
-  const handleExport = (format: string) => {
-    // Export report logic
-  };
-
-  return (
-    <div className="py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-1">Reports</h1>
-            <p className="text-muted-foreground">Analytics and performance reports</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <RoleAccessIndicator requiredRole="ADMIN" currentRole={user?.role || 'GUEST'} />
-            <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-40 bg-muted/30 dark:bg-white/5 border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">Last 7 Days</SelectItem>
-                <SelectItem value="30d">Last 30 Days</SelectItem>
-                <SelectItem value="90d">Last 90 Days</SelectItem>
-                <SelectItem value="1y">Last Year</SelectItem>
-              </SelectContent>
-            </Select>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="bg-gradient-to-r from-emerald-500 to-teal-600">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleExport('pdf')}>
-                  <FileText className="w-4 h-4 mr-2" />
-                  Export as PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('csv')}>
-                  <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  Export as CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('excel')}>
-                  <FileDown className="w-4 h-4 mr-2" />
-                  Export as Excel
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleExport('print')}>
-                  <Printer className="w-4 h-4 mr-2" />
-                  Print Report
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        {/* Report Type Tabs */}
-        <Tabs value={reportType} onValueChange={setReportType} className="space-y-6">
-          <TabsList className="bg-muted/30 dark:bg-white/5 border border-border">
-            <TabsTrigger value="revenue" className="data-[state=active]:bg-emerald-500/30 dark:bg-emerald-500/20 data-[state=active]:text-emerald-400">
-              <DollarSign className="w-4 h-4 mr-2" />
-              Revenue
-            </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-emerald-500/30 dark:bg-emerald-500/20 data-[state=active]:text-emerald-400">
-              <Users className="w-4 h-4 mr-2" />
-              User Growth
-            </TabsTrigger>
-            <TabsTrigger value="services" className="data-[state=active]:bg-emerald-500/30 dark:bg-emerald-500/20 data-[state=active]:text-emerald-400">
-              <Layers className="w-4 h-4 mr-2" />
-              Services
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Revenue Report */}
-          <TabsContent value="revenue">
-            <div className="space-y-6">
-              {/* Revenue Summary Cards */}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  { label: 'Total Revenue', value: '$35,350', change: '+12.5%', trend: 'up', icon: DollarSign },
-                  { label: 'Total Orders', value: '674', change: '+8.2%', trend: 'up', icon: Package },
-                  { label: 'Avg Order Value', value: '$52.45', change: '+3.1%', trend: 'up', icon: Target },
-                  { label: 'Refunds', value: '$450', change: '-15.3%', trend: 'down', icon: TrendingDown },
-                ].map((metric, idx) => (
-                  <motion.div
-                    key={metric.label}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                  >
-                    <Card className="glass-card">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <metric.icon className="w-5 h-5 text-muted-foreground" />
-                          <Badge className={metric.trend === 'up' ? 'bg-emerald-500/30 dark:bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}>
-                            {metric.change}
-                          </Badge>
-                        </div>
-                        <div className="text-2xl font-bold">{metric.value}</div>
-                        <p className="text-sm text-muted-foreground">{metric.label}</p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Revenue Chart */}
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-emerald-400" />
-                    Revenue Trend
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={chartConfig} className="h-72">
-                    <RechartsLineChart data={revenueReportData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                      <XAxis dataKey="period" stroke="#64748b" fontSize={12} />
-                      <YAxis stroke="#64748b" fontSize={12} />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', strokeWidth: 2 }} />
-                    </RechartsLineChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-
-              {/* Revenue Breakdown Table */}
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle>Revenue Breakdown</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="max-h-[300px]" id="revenue-scroll">
-                    <table className="w-full">
-                      <thead className="sticky top-0 bg-card/95">
-                        <tr className="border-b border-border">
-                          <th className="text-left p-4 text-sm font-medium text-muted-foreground">Period</th>
-                          <th className="text-right p-4 text-sm font-medium text-muted-foreground">Revenue</th>
-                          <th className="text-right p-4 text-sm font-medium text-muted-foreground">Orders</th>
-                          <th className="text-right p-4 text-sm font-medium text-muted-foreground">Avg Value</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {revenueReportData.map((row, idx) => (
-                          <tr key={idx} className="border-b border-border/50 hover:bg-muted/30 dark:bg-white/5 transition-colors">
-                            <td className="p-4 font-medium">{row.period}</td>
-                            <td className="p-4 text-right text-emerald-400">${row.revenue.toLocaleString()}</td>
-                            <td className="p-4 text-right">{row.orders}</td>
-                            <td className="p-4 text-right">${row.avgOrderValue}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </ScrollArea>
-                  
-                  <div className="absolute bottom-4 right-4 flex gap-2 z-10">
-                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full shadow-lg" onClick={() => handleScroll('revenue-scroll', 'top')}>
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full shadow-lg" onClick={() => handleScroll('revenue-scroll', 'bottom')}>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* User Growth Report */}
-          <TabsContent value="users">
-            <div className="space-y-6">
+      {/* Services Section */}
+      <div className="mt-12">
               {/* User Summary Cards */}
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
@@ -1919,9 +637,6 @@ export function AdminReports() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            </div>
-          </TabsContent>
 
           {/* Service Performance Report */}
           <TabsContent value="services">
@@ -1978,7 +693,7 @@ export function AdminReports() {
                   <CardTitle>Service Performance Details</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="max-h-[400px]" id="service-scroll">
+                  <div className="max-h-[400px] overflow-y-auto">
                     <table className="w-full">
                       <thead className="sticky top-0 bg-card/95">
                         <tr className="border-b border-border">
@@ -2003,22 +718,54 @@ export function AdminReports() {
                         ))}
                       </tbody>
                     </table>
-                  </ScrollArea>
-                  
-                  <div className="absolute bottom-4 right-4 flex gap-2 z-10">
-                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full shadow-lg" onClick={() => handleScroll('service-scroll', 'top')}>
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full shadow-lg" onClick={() => handleScroll('service-scroll', 'bottom')}>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
-        </Tabs>
+        </div>
       </div>
+    </div>
+  );
+}
+
+// Analytics Component (redirects to dashboard for now)
+export function AdminAnalytics() {
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Analytics</h2>
+      <p className="text-muted-foreground">Analytics features coming soon. Using Dashboard view.</p>
+      <AdminDashboard />
+    </div>
+  );
+}
+
+// Users Management Component (placeholder)
+export function AdminUsers() {
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">User Management</h2>
+      <p className="text-muted-foreground">User management features coming soon.</p>
+    </div>
+  );
+}
+
+// Settings Component (placeholder)
+export function AdminSettings() {
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Settings</h2>
+      <p className="text-muted-foreground">Settings features coming soon.</p>
+    </div>
+  );
+}
+
+// Reports Component (placeholder)
+export function AdminReports() {
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Reports</h2>
+      <p className="text-muted-foreground">Reports features coming soon.</p>
     </div>
   );
 }
@@ -3009,6 +1756,12 @@ export function AdminOrders() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [scrollDirection, setScrollDirection] = useState<'top' | 'bottom'>('top');
   const { user } = useAppStore();
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [perPage, setPerPage] = useState(10);
 
   const handleScroll = (direction: 'top' | 'bottom') => {
     const el = document.getElementById('orders-scroll');
@@ -3025,7 +1778,7 @@ export function AdminOrders() {
 
   useEffect(() => {
     fetchOrders();
-  }, [filterStatus, searchQuery]);
+  }, [filterStatus, searchQuery, currentPage, perPage]);
 
   const fetchOrders = async () => {
     try {
@@ -3033,6 +1786,8 @@ export function AdminOrders() {
       const params = new URLSearchParams();
       if (filterStatus !== 'all') params.append('status', filterStatus);
       if (searchQuery) params.append('search', searchQuery);
+      params.append('limit', perPage.toString());
+      params.append('offset', ((currentPage - 1) * perPage).toString());
       
       const response = await fetch(`/api/orders?${params.toString()}`, {
         credentials: 'include',
@@ -3041,9 +1796,14 @@ export function AdminOrders() {
       if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
       setOrders(data.orders || []);
+      const total = data.pagination?.total || 0;
+      setTotalOrders(total);
+      setTotalPages(Math.ceil(total / perPage));
     } catch (error) {
       console.error('Failed to fetch orders:', error);
       setOrders([]);
+      setTotalOrders(0);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -3114,7 +1874,7 @@ export function AdminOrders() {
 
         {/* Orders Table */}
         <Card className="glass-card relative">
-          <ScrollArea className="max-h-[600px]" id="orders-scroll">
+          <div className="max-h-[600px] overflow-y-auto" id="orders-scroll">
             {loading ? (
               <div className="p-8 text-center text-muted-foreground">Loading orders...</div>
             ) : (
@@ -3170,7 +1930,7 @@ export function AdminOrders() {
                 </tbody>
               </table>
             )}
-          </ScrollArea>
+          </div>
           
           <div className="absolute bottom-4 right-4 flex gap-2 z-10">
             <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full shadow-lg" onClick={() => handleScroll('top')}>
@@ -3181,6 +1941,82 @@ export function AdminOrders() {
             </Button>
           </div>
         </Card>
+
+        {/* Pagination */}
+        {totalOrders > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 p-4 bg-card/50 rounded-lg border border-border">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Showing {(currentPage - 1) * perPage + 1} to {Math.min(currentPage * perPage, totalOrders)} of {totalOrders} orders</span>
+              <Select value={perPage.toString()} onValueChange={(v) => { setPerPage(Number(v)); setCurrentPage(1); }}>
+                <SelectTrigger className="w-20 h-8 bg-muted/30 dark:bg-white/5 border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+              <span>per page</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = Math.max(1, Math.min(currentPage - 2, totalPages - 4)) + i;
+                  if (page > totalPages) return null;
+                  return (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className="h-8 w-8 p-0"
+                    >
+                      {page}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

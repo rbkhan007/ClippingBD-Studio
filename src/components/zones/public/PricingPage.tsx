@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -127,7 +127,36 @@ export function PricingPage() {
   const [activeTab, setActiveTab] = useState<'image' | 'video' | 'clipping'>('clipping');
   const [deliverySpeed, setDeliverySpeed] = useState('standard');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [dbPricingTiers, setDbPricingTiers] = useState<any[]>([]);
+  const [dbFaqs, setDbFaqs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const setCurrentPage = useAppStore((state) => state.setCurrentPage);
+
+  useEffect(() => {
+    const fetchPricingData = async () => {
+      try {
+        setLoading(true);
+        const [pricingRes, faqRes] = await Promise.all([
+          fetch('/api/cms/pricing-tiers'),
+          fetch('/api/cms/faqs'),
+        ]);
+        const pricingData = await pricingRes.json();
+        const faqData = await faqRes.json();
+        if (pricingData.success && pricingData.data) {
+          setDbPricingTiers(pricingData.data);
+        }
+        if (faqData.success && faqData.data) {
+          setDbFaqs(faqData.data);
+        }
+      } catch (error) {
+        console.error('Error fetching pricing data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPricingData();
+  }, []);
 
   const handleNavigate = (path: string) => {
     setCurrentPage(path);
@@ -731,7 +760,7 @@ export function PricingPage() {
 
         <div className="max-w-3xl mx-auto">
           <Accordion type="single" collapsible className="space-y-3">
-            {faqs.map((faq, idx) => (
+            {(dbFaqs.length > 0 ? dbFaqs : faqs).map((faq: any, idx: number) => (
               <AccordionItem 
                 key={idx} 
                 value={`item-${idx}`} 

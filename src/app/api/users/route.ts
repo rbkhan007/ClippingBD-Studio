@@ -141,7 +141,10 @@ export async function PUT(request: NextRequest) {
   try {
     // First check auth (but allow for admin full access)
     const authResult = await requireAuth(request);
-    
+    if (!authResult.authorized) {
+      return authResult.error;
+    }
+
     const body = await request.json();
     const { userId, ...updates } = body;
 
@@ -158,25 +161,80 @@ export async function PUT(request: NextRequest) {
 
     // Build allowed updates - allow all for admin, limited for others
     const allowedUpdates: Record<string, unknown> = {};
-    
-    // Always allow name and avatar updates
+
+    // Always allow name and avatar updates for self
     if (updates.name) allowedUpdates.name = updates.name;
     if (updates.avatar) allowedUpdates.avatar = updates.avatar;
-    if (updates.email) allowedUpdates.email = updates.email;
-    
-    // Role-based updates
-    const isAdmin = authResult?.role === 'ADMIN' || authResult?.role === 'DEVELOPER';
-    
-    if (isAdmin) {
-      // Admin can update role, status, wallet
-      if (updates.role) allowedUpdates.role = updates.role;
-      if (updates.status) allowedUpdates.status = updates.status;
-      if (updates.walletBalance !== undefined) allowedUpdates.walletBalance = updates.walletBalance;
+    if (updates.phone) allowedUpdates.phone = updates.phone;
+    if (updates.company) allowedUpdates.company = updates.company;
+    if (updates.country) allowedUpdates.country = updates.country;
+    if (updates.timezone) allowedUpdates.timezone = updates.timezone;
+
+    // Email change requires verification - only allow if admin or self with verification
+    if (updates.email) {
+      const isAdmin = authResult?.role === 'ADMIN' || authResult?.role === 'DEVELOPER';
+      const isSelfUpdate = authResult?.userId === targetUserId;
+
+      if (isAdmin) {
+        // Admin can change email directly but must check uniqueness
+        const existingUser = await db.user.findUnique({
+          where: { email: updates.email.toLowerCase() },
+        });
+        if (existingUser && existingUser.id !== targetUserId) {
+          return NextResponse.json(
+            { error: 'Email already in use by another account' },
+            { status: 409 }
+          );
+        }
+        allowedUpdates.email = updates.email.toLowerCase();
+      } else if (isSelfUpdate) {
+        // Clients updating their own email need verification (placeholder)
+        // In production, send verification email before applying
+        const existingUser = await db.user.findUnique({
+          where: { email: updates.email.toLowerCase() },
+        });
+        if (existingUser && existingUser.id !== targetUserId) {
+          return NextResponse.json(
+            { error: 'This email is already associated with another account' },
+            { status: 409 }
+          );
+        }
+        // TODO: Implement email verification flow
+        allowedUpdates.email = updates.email.toLowerCase();
+      } else {
+        return NextResponse.json(
+          { error: 'Cannot change email without proper authorization' },
+          { status: 403 }
+        );
+      }
     }
 
-    // Handle password update
+    // Role-based updates
+    const isAdmin = authResult?.role === 'ADMIN' || authResult?.role === 'DEVELOPER';
+
+    if (isAdmin || (authResult?.userId === targetUserId && ['CLIENT', 'EDITOR', 'QA'].includes(authResult?.role || ''))) {
+      // Admins can update role, status, wallet
+      if (updates.role !== undefined && isAdmin) allowedUpdates.role = updates.role;
+      if (updates.status !== undefined && isAdmin) allowedUpdates.status = updates.status;
+      if (updates.walletBalance !== undefined && isAdmin) allowedUpdates.walletBalance = updates.walletBalance;
+    }
+
+    // Handle password update - admin only
     if (updates.password && isAdmin) {
       allowedUpdates.password = await bcrypt.hash(updates.password, 10);
+    }
+
+    // Prevent non-admin from updating sensitive fields
+    const sensitiveFields = ['role', 'status', 'walletBalance', 'password'];
+    if (!isAdmin) {
+      for (const field of sensitiveFields) {
+        if (updates[field as keyof typeof updates] !== undefined) {
+          return NextResponse.json(
+            { error: `You cannot update ${field}` },
+            { status: 403 }
+          );
+        }
+      }
     }
 
     const user = await db.user.update({
