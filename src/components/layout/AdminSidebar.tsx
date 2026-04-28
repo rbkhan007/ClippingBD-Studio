@@ -52,13 +52,11 @@ interface AdminSidebarProps {
 
 const mainNavItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/admin/analytics' },
 ];
 
 const crmNavItems: NavItem[] = [
-  { id: 'users', label: 'User CRM', icon: Users, path: '/admin/users' },
-  { id: 'orders', label: 'Orders CRM', icon: Package, path: '/admin/orders', badge: 12 },
-  { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/admin/messages', badge: 5 },
+  { id: 'users', label: 'Users', icon: Users, path: '/admin/users' },
+  { id: 'orders', label: 'Orders', icon: Package, path: '/admin/orders' },
   { id: 'reviews', label: 'Reviews', icon: Star, path: '/admin/reviews' },
 ];
 
@@ -69,19 +67,8 @@ const cmsNavItems: NavItem[] = [
   { id: 'faq', label: 'FAQs', icon: Layers, path: '/admin/cms/faq' },
 ];
 
-const financeNavItems: NavItem[] = [
-  { id: 'payments', label: 'Payments', icon: CreditCard, path: '/admin/payments' },
-  { id: 'transactions', label: 'Transactions', icon: Activity, path: '/admin/transactions' },
-  { id: 'reports', label: 'Reports', icon: FileBarChart, path: '/admin/reports' },
-];
-
 const settingsNavItems: NavItem[] = [
   { id: 'general', label: 'General', icon: Settings, path: '/admin/settings' },
-  { id: 'appearance', label: 'Appearance', icon: Palette, path: '/admin/settings/appearance' },
-  { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/settings/notifications' },
-  { id: 'security', label: 'Security', icon: Lock, path: '/admin/settings/security' },
-  { id: 'database', label: 'Database', icon: Database, path: '/admin/settings/database' },
-  { id: 'system', label: 'System', icon: Monitor, path: '/admin/settings/system' },
 ];
 
 export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
@@ -224,28 +211,14 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
           <Separator className="mx-2" />
 
-          {/* Finance Section */}
-          <div className="space-y-1">
-            {!collapsed && (
-              <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                Finance
-              </p>
-            )}
-            {financeNavItems.map((item) => (
-              <NavItemComponent key={item.id} item={item} />
-            ))}
-          </div>
-
-          <Separator className="mx-2" />
-
-          {/* Settings - Direct Navigation */}
+          {/* Settings - Single Option */}
           <div className="space-y-1">
             {!collapsed && (
               <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                 Settings
               </p>
             )}
-            {settingsNavItems.slice(0, 3).map((item) => (
+            {settingsNavItems.slice(0, 1).map((item) => (
               <NavItemComponent key={item.id} item={item} />
             ))}
           </div>
