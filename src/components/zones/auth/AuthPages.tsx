@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Mail, Lock, User as UserIcon, Eye, EyeOff, ArrowRight, Github, Chrome,
   AlertCircle, CheckCircle, Loader2, ExternalLink
@@ -16,7 +15,11 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore, getDashboardPath } from '@/store/app-store';
+import { createBrowserClient } from '@supabase/ssr';
 import type { UserRole, User } from '@/types/database';
+
+const supabaseUrl = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : '';
+const supabaseAnonKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY : '';
 
 
 function createUserObject(id: string, email: string, name: string, role: UserRole, walletBalance: number = 0): User {
@@ -111,12 +114,49 @@ export function AuthPages() {
 
 function LoginForm({ onSignupClick }: { onSignupClick: () => void }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUser, setCurrentPage, isAuthenticated, user } = useAppStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Check for OAuth errors in URL
+  useEffect(() => {
+    const errorParam = searchParams?.get('error');
+    if (errorParam) {
+      const errorMessages: Record<string, string> = {
+        oauth_failed: 'OAuth authentication failed. Please try again.',
+        exchange_failed: 'Failed to complete authentication. Please try again.',
+        auth_failed: 'Authentication failed. Please try again.',
+        no_user: 'Could not get user information.',
+        no_email: 'Email not provided by OAuth provider.',
+        inactive: 'Your account is not active. Please contact support.',
+        callback_error: 'An error occurred during authentication.',
+      };
+      setError(errorMessages[errorParam] || 'Authentication error occurred.');
+    }
+  }, [searchParams]);
+
+  // Auto-login if OAuth callback succeeded (checked via cookies)
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/login', { method: 'GET' });
+        const data = await res.json();
+        if (res.ok && data.authenticated && data.user) {
+          setUser(data.user);
+          const redirectPath = getDashboardPath(data.user.role);
+          setCurrentPage(redirectPath);
+          router.push(redirectPath);
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+      }
+    }
+    checkAuth();
+  }, [router, setUser, setCurrentPage]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -144,7 +184,6 @@ function LoginForm({ onSignupClick }: { onSignupClick: () => void }) {
       if (res.ok && data.user) {
         setUser(data.user);
       } else {
-        // Handle different error cases
         if (data.status === 'PENDING') {
           setError('Your account is pending approval. Please wait for an administrator to approve your account.');
         } else if (data.status === 'SUSPENDED') {
@@ -158,6 +197,45 @@ function LoginForm({ onSignupClick }: { onSignupClick: () => void }) {
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOAuthSignIn = async (provider: 'google' | 'github') => {
+    const url = typeof window !== 'undefined' ? (window as any).__NEXT_DATA__?.props?.pageProps?.supabaseUrl : null;
+    const key = typeof window !== 'undefined' ? (window as any).__NEXT_DATA__?.props?.pageProps?.supabaseAnonKey : null;
+    const sbUrl = url || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const sbKey = key || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!sbUrl || !sbKey) {
+      setError('OAuth not configured. Please contact support.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const supabase = createBrowserClient(sbUrl, sbKey);
+      const redirectTo = `${window.location.origin}/auth?oauth=complete`;
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error || !data?.url) {
+        setError(`Failed to connect to ${provider}. Please try again.`);
+        setLoading(false);
+        return;
+      }
+
+      sessionStorage.setItem('oauth_callback', '/dashboard');
+      window.location.href = data.url;
+    } catch (err) {
+      console.error('OAuth error:', err);
+      setError(`Failed to connect to ${provider}. Please try again.`);
       setLoading(false);
     }
   };
@@ -258,7 +336,8 @@ function LoginForm({ onSignupClick }: { onSignupClick: () => void }) {
         <Button
           variant="outline"
           className="border-border hover:bg-accent hover:border-emerald-500/30"
-          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+          onClick={() => handleOAuthSignIn('google')}
+          disabled={loading || !supabaseUrl}
         >
           <Chrome className="w-4 h-4 mr-2" />
           Google
@@ -266,12 +345,19 @@ function LoginForm({ onSignupClick }: { onSignupClick: () => void }) {
         <Button
           variant="outline"
           className="border-border hover:bg-accent hover:border-emerald-500/30"
-          onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+          onClick={() => handleOAuthSignIn('github')}
+          disabled={loading || !supabaseUrl}
         >
           <Github className="w-4 h-4 mr-2" />
           GitHub
         </Button>
       </div>
+
+      {!supabaseUrl && (
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          OAuth not configured. Contact support to enable social login.
+        </p>
+      )}
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}
