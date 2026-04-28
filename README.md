@@ -397,9 +397,8 @@ d48f0e7 perf: optimize CMS data loading with parallel fetch, caching
 - [x] Wallet & transactions
 - [x] Support tickets
 - [x] Admin dashboard with CRM
-- [ ] Email notifications (SendGrid/Resend)
-- [ ] Stripe payment integration
-- [ ] Mobile app (React Native)
+- [-] Email notifications (SendGrid/Resend) - API ready, needs integration
+- [-] Stripe payment integration - Webhooks ready, needs keys
 
 ---
 
