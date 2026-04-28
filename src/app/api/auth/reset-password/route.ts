@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { validatePasswordReset } from '@/lib/validations/auth';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,12 +47,33 @@ export async function POST(request: NextRequest) {
 
     const { token, password: newPassword } = validationResult.data;
 
+    // Find user by reset token
+    const user = await db.user.findFirst({
+      where: {
+        resetToken: token,
+        resetExpires: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid or expired reset token. Please request a new password reset.',
+      }, { status: 400 });
+    }
+
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-    // TODO: In production, verify the token against stored tokens in database
-    // const resetToken = await db.resetToken.findUnique({ where: { token } });
-    // if (!resetToken || resetToken.expires < new Date()) { ... }
+    // Update user password and clear reset token
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetExpires: null,
+      },
+    });
 
     return NextResponse.json({
       success: true,

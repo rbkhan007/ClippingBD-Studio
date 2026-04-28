@@ -28,6 +28,8 @@ model User {
   country           String?
   timezone          String                @default("Asia/Dhaka")
   impersonating     String?
+  resetToken        String?
+  resetExpires      DateTime?
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
   lastLoginAt       DateTime?
@@ -44,6 +46,7 @@ model User {
 
   @@index([status])
   @@index([role])
+  @@index([resetToken])
   @@map("users")
 }
 

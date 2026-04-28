@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
       select: { id: true, name: true, email: true },
     });
 
+    // Always return success to prevent email enumeration
     if (!user) {
       return NextResponse.json({
         success: true,
@@ -26,11 +27,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Generate reset token
     const resetToken = crypto.randomUUID();
-    const resetExpires = new Date(Date.now() + 3600000);
+    const resetExpires = new Date(Date.now() + 3600000); // 1 hour
 
-    // Store reset token in database (implementation would go here)
-    // console.log('Password reset requested') - Removed for security
+    // Store reset token in database
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken,
+        resetExpires,
+      },
+    });
+
+    // In production, send email with reset link
+    // For now, log the token (remove in production)
+    console.log('Password reset token for', email, ':', resetToken);
 
     return NextResponse.json({
       success: true,
