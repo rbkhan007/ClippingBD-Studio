@@ -1,18 +1,13 @@
 'use client';
 
-import { lazy, Suspense, useSyncExternalStore, useEffect } from 'react';
+import { lazy, Suspense, useSyncExternalStore, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/app-store';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Logo } from '@/components/Logo';
 
-// Empty subscription for hydration
-const emptySubscribe = () => () => {};
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
-
-// Loading component - uses Logo with animations
+// Loading skeleton component - instant render
 function PageLoader() {
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -37,22 +32,21 @@ function PageLoader() {
         </div>
       </div>
     </div>
-  );
+);
 }
 
-// Lazy load all pages
+// Empty subscription for hydration
+const emptySubscribe = (onStoreChange: () => void) => () => { onStoreChange(); };
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
+// Lazy load all pages - defined before use
 const HomePage = lazy(() => import('@/components/zones/public/HomePage').then(m => ({ default: m.HomePage })));
 const ServicesPage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.ServicesPage })));
 const ClippingPathServicePage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.ClippingPathServicePage })));
 const ImageServicePage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.ImageServicePage })));
 const VideoServicePage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.VideoServicePage })));
 const AIServicePage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.AIServicePage })));
-
-// Home page component - uses CMS content internally
-function HomePageComponent() {
-  return <HomePage />;
-}
-
 const WebServicePage = lazy(() => import('@/components/zones/public/ServicesPage').then(m => ({ default: m.WebServicePage })));
 const PricingPage = lazy(() => import('@/components/zones/public/PricingPage').then(m => ({ default: m.PricingPage })));
 const PortfolioPage = lazy(() => import('@/components/zones/public/PortfolioPage').then(m => ({ default: m.PortfolioPage })));
@@ -68,6 +62,11 @@ const EditorPages = lazy(() => import('@/components/zones/editor/EditorPages').t
 const QAPages = lazy(() => import('@/components/zones/qa/QAPages').then(m => ({ default: m.QAPages })));
 const AdminPages = lazy(() => import('@/components/zones/admin/AdminPages').then(m => ({ default: m.AdminPages })));
 const DevPages = lazy(() => import('@/components/zones/dev/DevPages').then(m => ({ default: m.DevPages })));
+
+// Home page component - uses CMS content internally
+function HomePageComponent() {
+  return <HomePage />;
+}
 
 // Page Router Component
 function PageRouter({ currentPage, isAuthenticated, user }: { 

@@ -439,11 +439,15 @@ function SignupForm() {
 
       if (res.ok && data.success) {
         // Account created successfully
-        if (data.user) {
-          // Auto-approved - login and redirect
+        if (data.user && data.needsApproval === false) {
+          // Auto-approved CLIENT - login and redirect
           setUser(data.user);
+        } else if (data.needsApproval) {
+          // EDITOR/QA pending - show message and switch to login
+          setError('');
+          alert('Your account has been created and is pending approval. You will be notified once approved. You can now log in.');
         } else {
-          // Show success message
+          // No auto-login - show message to login
           alert('Account created successfully! You can now log in.');
         }
       } else {

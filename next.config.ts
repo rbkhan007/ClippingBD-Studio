@@ -124,6 +124,7 @@ const nextConfig: NextConfig = {
   // Redirects
   async redirects() {
     return [
+      // Auth redirects
       {
         source: '/home',
         destination: '/',
@@ -145,6 +146,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/signup',
+        destination: '/auth',
+        permanent: true,
+      },
+      {
         source: '/auth/signup',
         destination: '/auth',
         permanent: true,
@@ -152,6 +158,68 @@ const nextConfig: NextConfig = {
       {
         source: '/auth/reset',
         destination: '/auth',
+        permanent: true,
+      },
+      {
+        source: '/auth/forgot-password',
+        destination: '/auth',
+        permanent: true,
+      },
+      // Dashboard/Studio redirects
+      {
+        source: '/dashboard',
+        destination: '/studio',
+        permanent: true,
+      },
+      {
+        source: '/my-account',
+        destination: '/studio',
+        permanent: true,
+      },
+      {
+        source: '/profile',
+        destination: '/studio',
+        permanent: true,
+      },
+      {
+        source: '/orders',
+        destination: '/studio',
+        permanent: true,
+      },
+      {
+        source: '/projects',
+        destination: '/studio',
+        permanent: true,
+      },
+      // Admin/management redirects
+      {
+        source: '/jobs',
+        destination: '/studio',
+        permanent: true,
+      },
+      {
+        source: '/work',
+        destination: '/studio',
+        permanent: true,
+      },
+      {
+        source: '/admin',
+        destination: '/studio',
+        permanent: true,
+      },
+      {
+        source: '/panel',
+        destination: '/studio',
+        permanent: true,
+      },
+      {
+        source: '/cms',
+        destination: '/studio',
+        permanent: true,
+      },
+      {
+        source: '/app',
+        destination: '/studio',
         permanent: true,
       },
     ];
