@@ -286,10 +286,30 @@ src/
 ## Vercel Deployment
 
 1. Import project on Vercel
-2. Add environment variables
+2. Add environment variables (see below)
 3. Deploy
 
-**Build Output:** 79 routes compiled successfully
+**IMPORTANT: Environment Variables on Vercel**
+
+The `.env` file is NOT automatically read on Vercel. You must add these manually in Vercel Project Settings → Environment Variables:
+
+```env
+DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-1-[region].pooler.supabase.com:6543/postgres?pgbouncer=true
+DIRECT_URL=postgresql://postgres.[ref]:[password]@aws-1-[region].pooler.supabase.com:5432/postgres
+JWT_SECRET=your-secure-jwt-secret
+NEXTAUTH_SECRET=your-nextauth-secret
+NEXTAUTH_URL=https://clippingbdstudio.vercel.app
+NEXT_PUBLIC_APP_URL=https://clippingbdstudio.vercel.app
+ALLOWED_ORIGINS=https://clippingbdstudio.vercel.app,https://www.clippingbdstudio.com
+NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+**Also Enable Supabase Realtime:**
+- Supabase Dashboard → Database → Realtime
+- Enable for: `chat_message`, `chat_room`, `chat_room_participant`, `notification`, `orders`, `tasks`, all `cms_*` tables
+
+**Build Output:** 74 routes compiled successfully
 
 ---
 
@@ -298,12 +318,13 @@ src/
 | Check | Status |
 |-------|--------|
 | TypeScript | ✅ 0 errors |
-| Production Build | ✅ 79 pages |
+| Production Build | ✅ 74 pages |
 | API Routes | ✅ 50+ endpoints |
 | Database | ✅ PostgreSQL + Prisma |
 | Realtime | ✅ Supabase |
 | Auth | ✅ JWT + Cookies |
 | Admin CRM | ✅ Full management |
+| CMS | ✅ 13 tables |
 
 ---
 
