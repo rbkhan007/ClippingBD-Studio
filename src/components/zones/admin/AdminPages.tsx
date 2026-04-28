@@ -40,6 +40,7 @@ import { useApi } from '@/hooks/use-api';
 import type { UserRole, UserStatus } from '@/types/database';
 import { AdminSidebar } from '@/components/layout/AdminSidebar';
 import { AdminPayments } from './AdminPayments';
+import { AdminUsers } from './AdminUsers';
 
 // Types
 interface User {
@@ -736,16 +737,6 @@ export function AdminAnalytics() {
       <h2 className="text-2xl font-bold mb-4">Analytics</h2>
       <p className="text-muted-foreground">Analytics features coming soon. Using Dashboard view.</p>
       <AdminDashboard />
-    </div>
-  );
-}
-
-// Users Management Component (placeholder)
-export function AdminUsers() {
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">User Management</h2>
-      <p className="text-muted-foreground">User management features coming soon.</p>
     </div>
   );
 }
