@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 
-const DEFAULT_WHATSAPP = '+8801722646692';
+const DEFAULT_WHATSAPP = '+8801749616724';
 
 export function WhatsAppFloating() {
   const [whatsappNumber, setWhatsappNumber] = useState<string>(DEFAULT_WHATSAPP);
@@ -38,7 +38,7 @@ export function WhatsAppFloating() {
     fetchSettings();
   }, []);
 
-  const waLink = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=Hi! I'm interested in your services. Can you please provide more information?`;
+  const waLink = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent("Hi! I'm interested in your services. Can you please provide more information?")}`;
 
   return (
     <AnimatePresence>
@@ -105,7 +105,7 @@ export function WhatsAppMini() {
     fetchSettings();
   }, []);
 
-  const waLink = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=Hi! I need help.`;
+  const waLink = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent("Hi! I need help.")}`;
 
   return (
     <a
