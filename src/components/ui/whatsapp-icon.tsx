@@ -12,10 +12,12 @@ export function WhatsAppFloating() {
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
-    // Fetch CMS settings to get WhatsApp number
+    // Fetch CMS settings to get WhatsApp number (cached for 60s)
     const fetchSettings = async () => {
       try {
-        const response = await fetch('/api/cms/settings');
+        const response = await fetch('/api/cms/settings', { 
+          next: { revalidate: 60 } 
+        });
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data && data.data.whatsappNumber) {
@@ -34,10 +36,6 @@ export function WhatsAppFloating() {
     };
 
     fetchSettings();
-
-    // Optional: poll every 60s for changes
-    const interval = setInterval(fetchSettings, 60000);
-    return () => clearInterval(interval);
   }, []);
 
   const waLink = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=Hi! I'm interested in your services. Can you please provide more information?`;

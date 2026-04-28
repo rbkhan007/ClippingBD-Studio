@@ -147,25 +147,22 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         
+        {/* Preload critical CMS data */}
+        <link rel="preload" href="/api/cms/hero" as="fetch" crossOrigin="anonymous" />
+        
         {/* Theme initialization script - prevents flash */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
-                  var stored = localStorage.getItem('clippingbd-theme');
-                  var theme = 'light';
-                  if (stored) {
-                    var parsed = JSON.parse(stored);
-                    if (parsed.state && parsed.state.theme) {
-                      theme = parsed.state.theme;
-                    }
-                  }
+                  var stored = localStorage.getItem('theme');
+                  var theme = stored || 'dark';
                   document.documentElement.classList.remove('light', 'dark');
                   document.documentElement.classList.add(theme);
                   document.documentElement.style.colorScheme = theme;
                 } catch (e) {
-                  document.documentElement.classList.add('light');
+                  document.documentElement.classList.add('dark');
                 }
               })();
             `,

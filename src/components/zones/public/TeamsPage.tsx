@@ -29,7 +29,7 @@ export function TeamsPage() {
     const fetchTeam = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/team');
+        const response = await fetch('/api/team', { next: { revalidate: 60 } });
         const data = await response.json();
         if (data.success && data.teamMembers) {
           setDbTeamMembers(data.teamMembers);

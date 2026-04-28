@@ -137,8 +137,8 @@ export function PricingPage() {
       try {
         setLoading(true);
         const [pricingRes, faqRes] = await Promise.all([
-          fetch('/api/cms/pricing-tiers'),
-          fetch('/api/cms/faqs'),
+          fetch('/api/cms/pricing-tiers', { next: { revalidate: 60 } }),
+          fetch('/api/cms/faqs', { next: { revalidate: 60 } }),
         ]);
         const pricingData = await pricingRes.json();
         const faqData = await faqRes.json();

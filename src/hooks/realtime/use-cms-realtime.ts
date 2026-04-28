@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 
 const supabaseUrl = typeof window !== 'undefined' 
   ? (window as any).__NEXT_DATA__?.props?.pageProps?.supabaseUrl || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -17,6 +16,7 @@ function getSupabaseClient() {
     return null;
   }
   try {
+    const { createBrowserClient } = require('@supabase/ssr');
     return createBrowserClient(supabaseUrl, supabaseAnonKey);
   } catch (error) {
     console.error('[Realtime] Failed to create client:', error);
@@ -28,48 +28,15 @@ function isSupabaseConfigured(): boolean {
   return !!(supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http'));
 }
 
-const supabaseTableMap: Record<string, string> = {
-  'hero': 'cms_hero',
-  'statistics': 'cms_statistics',
-  'features': 'cms_features',
-  'services': 'cms_services',
-  'pricing-tiers': 'cms_pricing_tiers',
-  'testimonials': 'cms_testimonials',
-  'portfolio': 'cms_portfolio_items',
-  'team': 'cms_team_members',
-  'faqs': 'cms_faqs',
-  'partners': 'cms_partners',
-  'social-links': 'cms_social_links',
-  'contact-info': 'cms_contact_info',
-  'settings': 'cms_global_settings',
-};
-
-const apiEndpoints: Record<string, string> = {
-  hero: '/api/cms/hero',
-  statistics: '/api/cms/statistics',
-  features: '/api/cms/features',
-  services: '/api/cms/services',
-  'pricing-tiers': '/api/cms/pricing-tiers',
-  testimonials: '/api/cms/testimonials',
-  portfolio: '/api/cms/portfolio',
-  team: '/api/cms/team',
-  faqs: '/api/cms/faqs',
-  partners: '/api/cms/partners',
-  'social-links': '/api/cms/social-links',
-  'contact-info': '/api/cms/contact-info',
-  settings: '/api/cms/settings',
-};
-
-async function fetchApiData(endpoint: string) {
-  try {
-    const res = await fetch(endpoint);
-    const data = await res.json();
-    return data.success ? data.data : [];
-  } catch (error) {
-    console.error(`[Realtime] Fetch error for ${endpoint}:`, error);
-    return [];
-  }
+interface CmsData {
+  hero: any[];
+  statistics: any[];
+  features: any[];
+  services: any[];
+  testimonials: any[];
 }
+
+type CmsKeys = keyof CmsData;
 
 function subscribeToTable(
   tableName: string,
@@ -109,53 +76,255 @@ function subscribeToTable(
   }
 }
 
-function createUseCmsData(tableKey: string) {
-  return function useCmsData() {
-    const [data, setData] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const channelCleanupRef = useRef<(() => void) | null>(null);
-    const endpoint = apiEndpoints[tableKey];
-    const supabaseTable = supabaseTableMap[tableKey];
+function useCmsData() {
+  const [data, setData] = useState<CmsData>({
+    hero: [],
+    statistics: [],
+    features: [],
+    services: [],
+    testimonials: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const channelCleanupRef = useRef<(() => void) | null>(null);
 
-    const fetchData = useCallback(async () => {
-      setLoading(true);
-      const result = await fetchApiData(endpoint);
-      setData(result);
-      setLoading(false);
-    }, [endpoint]);
-
-    useEffect(() => {
-      fetchData();
-
-      if (isSupabaseConfigured() && supabaseTable) {
-        channelCleanupRef.current = subscribeToTable(supabaseTable, fetchData);
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/cms/hero', { 
+        cache: 'force-cache',
+        next: { revalidate: 60 }
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        setData(result.data);
       }
+    } catch (err) {
+      console.error('[CMS] Fetch error:', err);
+      setError('Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-      return () => {
-        if (channelCleanupRef.current) {
-          channelCleanupRef.current();
-        }
-      };
-    }, [fetchData, supabaseTable]);
+  useEffect(() => {
+    fetchData();
 
-    return { data, loading, error, refetch: fetchData };
-  };
+    if (isSupabaseConfigured()) {
+      channelCleanupRef.current = subscribeToTable('cms_hero', fetchData);
+    }
+
+    return () => {
+      if (channelCleanupRef.current) {
+        channelCleanupRef.current();
+      }
+    };
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
 }
 
-export const useCmsHero = createUseCmsData('hero');
-export const useCmsStatistics = createUseCmsData('statistics');
-export const useCmsFeatures = createUseCmsData('features');
-export const useCmsServices = createUseCmsData('services');
-export const useCmsPricingTiers = createUseCmsData('pricing-tiers');
-export const useCmsTestimonials = createUseCmsData('testimonials');
-export const useCmsPortfolio = createUseCmsData('portfolio');
-export const useCmsTeam = createUseCmsData('team');
-export const useCmsFaqs = createUseCmsData('faqs');
-export const useCmsPartners = createUseCmsData('partners');
-export const useCmsSocialLinks = createUseCmsData('social-links');
-export const useCmsContactInfo = createUseCmsData('contact-info');
-export const useCmsSettings = createUseCmsData('settings');
+export function useCmsHero() {
+  const { data, loading, error, refetch } = useCmsData();
+  return { data: data.hero, loading, error, refetch };
+}
+
+export function useCmsStatistics() {
+  const { data, loading, error, refetch } = useCmsData();
+  return { data: data.statistics, loading, error, refetch };
+}
+
+export function useCmsFeatures() {
+  const { data, loading, error, refetch } = useCmsData();
+  return { data: data.features, loading, error, refetch };
+}
+
+export function useCmsServices() {
+  const { data, loading, error, refetch } = useCmsData();
+  return { data: data.services, loading, error, refetch };
+}
+
+export function useCmsTestimonials() {
+  const { data, loading, error, refetch } = useCmsData();
+  return { data: data.testimonials, loading, error, refetch };
+}
+
+export function useCmsPricingTiers() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchPricing() {
+      try {
+        const res = await fetch('/api/cms/pricing-tiers', { next: { revalidate: 60 } });
+        const result = await res.json();
+        if (result.success) setData(result.data || []);
+      } catch (err) {
+        console.error('[CMS] Pricing fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPricing();
+  }, []);
+
+  return { data, loading, error };
+}
+
+export function useCmsPortfolio() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPortfolio() {
+      try {
+        const res = await fetch('/api/cms/portfolio', { next: { revalidate: 60 } });
+        const result = await res.json();
+        if (result.success) setData(result.data || []);
+      } catch (err) {
+        console.error('[CMS] Portfolio fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPortfolio();
+  }, []);
+
+  return { data, loading };
+}
+
+export function useCmsTeam() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchTeam() {
+      try {
+        const res = await fetch('/api/cms/team', { next: { revalidate: 60 } });
+        const result = await res.json();
+        if (result.success) setData(result.data || []);
+      } catch (err) {
+        console.error('[CMS] Team fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTeam();
+  }, []);
+
+  return { data, loading };
+}
+
+export function useCmsFaqs() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFaqs() {
+      try {
+        const res = await fetch('/api/cms/faqs', { next: { revalidate: 60 } });
+        const result = await res.json();
+        if (result.success) setData(result.data || []);
+      } catch (err) {
+        console.error('[CMS] FAQs fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchFaqs();
+  }, []);
+
+  return { data, loading };
+}
+
+export function useCmsPartners() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPartners() {
+      try {
+        const res = await fetch('/api/cms/partners', { next: { revalidate: 60 } });
+        const result = await res.json();
+        if (result.success) setData(result.data || []);
+      } catch (err) {
+        console.error('[CMS] Partners fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPartners();
+  }, []);
+
+  return { data, loading };
+}
+
+export function useCmsSocialLinks() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSocialLinks() {
+      try {
+        const res = await fetch('/api/cms/social-links', { next: { revalidate: 60 } });
+        const result = await res.json();
+        if (result.success) setData(result.data || []);
+      } catch (err) {
+        console.error('[CMS] Social links fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSocialLinks();
+  }, []);
+
+  return { data, loading };
+}
+
+export function useCmsContactInfo() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchContactInfo() {
+      try {
+        const res = await fetch('/api/cms/contact-info', { next: { revalidate: 60 } });
+        const result = await res.json();
+        if (result.success) setData(result.data || []);
+      } catch (err) {
+        console.error('[CMS] Contact info fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchContactInfo();
+  }, []);
+
+  return { data, loading };
+}
+
+export function useCmsSettings() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const res = await fetch('/api/cms/settings', { next: { revalidate: 60 } });
+        const result = await res.json();
+        if (result.success) setData(result.data || []);
+      } catch (err) {
+        console.error('[CMS] Settings fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSettings();
+  }, []);
+
+  return { data, loading };
+}
 
 export function isRealtimeConfigured() {
   return isSupabaseConfigured();

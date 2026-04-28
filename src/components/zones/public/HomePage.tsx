@@ -114,7 +114,7 @@ export function HomePage() {
 
   const fetchReviews = useCallback(async () => {
     try {
-      const res = await fetch('/api/reviews?limit=6');
+      const res = await fetch('/api/reviews?limit=6', { next: { revalidate: 60 } });
       const data = await res.json();
       if (data.success && data.data?.length > 0) {
         setClientReviews(data.data);

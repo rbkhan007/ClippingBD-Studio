@@ -156,7 +156,7 @@ export function ServicesPage() {
     const fetchServices = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/services');
+        const response = await fetch('/api/services', { next: { revalidate: 60 } });
         const data = await response.json();
         if (data.services) {
           setDbServices(data.services);

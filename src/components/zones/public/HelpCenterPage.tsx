@@ -162,7 +162,7 @@ export function HelpCenterPage() {
     const fetchFaqs = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/admin/cms/faq?isPublished=true');
+        const response = await fetch('/api/admin/cms/faq?isPublished=true', { next: { revalidate: 60 } });
         const data = await response.json();
         if (data.success && data.faqItems) {
           setDbFaqs(data.faqItems);

@@ -492,7 +492,7 @@ export function PortfolioPage() {
     const fetchPortfolio = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/portfolio');
+        const response = await fetch('/api/portfolio', { next: { revalidate: 60 } });
         const data = await response.json();
         if (data.success && data.portfolioItems) {
           setDbPortfolio(data.portfolioItems.map((p: any) => ({
