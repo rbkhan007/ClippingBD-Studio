@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
-    const provider = searchParams.get('provider');
+    const provider = searchParams.get('provider') || 'google';
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
 
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
           email: email.toLowerCase(),
           name: oauthUser.user_metadata?.full_name || oauthUser.user_metadata?.name || 'User',
           avatar: oauthUser.user_metadata?.avatar_url || oauthUser.user_metadata?.picture,
-          password: `oauth_${provider}_${oauthUser.id}`,
+          password: `oauth_${oauthUser.id.substring(0, 8)}`,
           role: 'CLIENT',
           status: 'ACTIVE',
           currency: 'USD',
