@@ -24,21 +24,20 @@ ClippingBD Studio is a fully-featured enterprise SAAS platform built with Next.j
 - **24/7** Operations
 - **Production Ready** on Vercel (76 routes)
 - **OAuth Ready** Google/GitHub login
+- **All Roles Available** Client, Editor, QA on signup
 
 ---
 
-## Authentication
+## User Roles & Signup
 
-### Login Methods
-- **Email/Password** - Custom authentication with bcrypt
-- **OAuth** - Google & GitHub via Supabase
-- **Auto-approve** - New clients get ACTIVE status on signup (no approval needed)
+### Signup Flow
+| Role | Signup Status | Description |
+|------|-------------|-------------|
+| **CLIENT** | Auto-approved | Can login immediately after signup |
+| **EDITOR** | Pending approval | Must wait for admin approval |
+| **QA** | Pending approval | Must wait for admin approval |
 
----
-
-## Complete Feature List
-
-### Multi-Role User Management
+### Role Permissions
 | Role | Permissions |
 |------|-------------|
 | **ADMIN** | Full platform access, user management, CMS, payments, reports |
@@ -356,7 +355,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 | Database | ✅ PostgreSQL + Prisma |
 | Realtime | ✅ Supabase |
 | Auth | ✅ JWT + Cookies + OAuth |
-| Auto-approve | ✅ New clients ACTIVE |
+| Role Signup | ✅ CLIENT auto-approved, EDITOR/QA pending |
 | Admin CRM | ✅ Full management |
 | CMS | ✅ 13 tables |
 
@@ -365,6 +364,9 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ## Recent Updates
 
 ```
+2ce7121 fix: properly handle all user roles in signup flow
+e464388 config: update .env files with production credentials
+6efa7e2 docs: add .env.example template for easy Vercel deployment
 954df91 fix: improve OAuth callback error handling
 e7fc27e fix: auto-approve new clients on signup (ACTIVE status)
 40e90b1 feat: add Supabase OAuth for Google/GitHub sign-in buttons
