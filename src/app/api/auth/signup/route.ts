@@ -8,8 +8,8 @@ import bcrypt from 'bcrypt';
  * POST /api/auth/signup
  * Register a new user
  * 
- * New users are created with status "PENDING" and must be approved
- * by an Admin or Developer before they can log in.
+ * New clients are auto-approved with ACTIVE status - they can login immediately.
+ * Only ADMIN/DEVELOPER roles require manual approval.
  */
 export async function POST(request: NextRequest) {
   // Apply rate limiting for auth routes
