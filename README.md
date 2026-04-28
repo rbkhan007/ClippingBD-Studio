@@ -22,7 +22,17 @@ ClippingBD Studio is a fully-featured enterprise SAAS platform built with Next.j
 - **50M+** Images Processed  
 - **120+** Countries Served
 - **24/7** Operations
-- **Production Ready** on Vercel
+- **Production Ready** on Vercel (76 routes)
+- **OAuth Ready** Google/GitHub login
+
+---
+
+## Authentication
+
+### Login Methods
+- **Email/Password** - Custom authentication with bcrypt
+- **OAuth** - Google & GitHub via Supabase
+- **Auto-approve** - New clients get ACTIVE status on signup (no approval needed)
 
 ---
 
@@ -95,8 +105,8 @@ ClippingBD Studio is a fully-featured enterprise SAAS platform built with Next.j
 - Contact information
 - Global settings
 
-### API Endpoints (50+)
-- Authentication: `/api/auth/*` (login, signup, logout, forgot-password, reset-password)
+### API Endpoints (60+)
+- Authentication: `/api/auth/*` (login, signup, logout, oauth, callback, forgot-password, reset-password)
 - Users: `/api/users` (CRUD for admin)
 - Orders: `/api/orders` (full management)
 - Tasks: `/api/tasks` (assignment and tracking)
@@ -281,6 +291,22 @@ src/
    - `source-files` - Original uploads
 6. **RLS** - Configure Row Level Security
 
+### OAuth Setup (Google/GitHub)
+1. Go to **Supabase Dashboard → Authentication → Providers**
+2. Enable **Google** or **GitHub**
+3. Enter your OAuth credentials:
+   - Google: Client ID and Client Secret from Google Cloud Console
+   - GitHub: Client ID and Client Secret from GitHub Developer Settings
+4. Add redirect URL in OAuth provider:
+   - `https://[your-project].supabase.com/auth/v1/callback`
+5. Add environment variables:
+   ```env
+   GOOGLE_CLIENT_ID="your-google-client-id"
+   GOOGLE_CLIENT_SECRET="your-google-client-secret"
+   GITHUB_CLIENT_ID="your-github-client-id"
+   GITHUB_CLIENT_SECRET="your-github-client-secret"
+   ```
+
 ---
 
 ## Vercel Deployment
@@ -303,13 +329,20 @@ NEXT_PUBLIC_APP_URL=https://clippingbdstudio.vercel.app
 ALLOWED_ORIGINS=https://clippingbdstudio.vercel.app,https://www.clippingbdstudio.com
 NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# OAuth Providers (optional - enable in Supabase Dashboard)
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+# GITHUB_CLIENT_ID=
+# GITHUB_CLIENT_SECRET=
 ```
 
 **Also Enable Supabase Realtime:**
 - Supabase Dashboard → Database → Realtime
 - Enable for: `chat_message`, `chat_room`, `chat_room_participant`, `notification`, `orders`, `tasks`, all `cms_*` tables
 
-**Build Output:** 74 routes compiled successfully
+**Build Output:** 76 routes compiled successfully
 
 ---
 
@@ -318,13 +351,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 | Check | Status |
 |-------|--------|
 | TypeScript | ✅ 0 errors |
-| Production Build | ✅ 74 pages |
-| API Routes | ✅ 50+ endpoints |
+| Production Build | ✅ 76 pages |
+| API Routes | ✅ 60+ endpoints |
 | Database | ✅ PostgreSQL + Prisma |
 | Realtime | ✅ Supabase |
-| Auth | ✅ JWT + Cookies |
+| Auth | ✅ JWT + Cookies + OAuth |
+| Auto-approve | ✅ New clients ACTIVE |
 | Admin CRM | ✅ Full management |
 | CMS | ✅ 13 tables |
+
+---
+
+## Recent Updates
+
+```
+954df91 fix: improve OAuth callback error handling
+e7fc27e fix: auto-approve new clients on signup (ACTIVE status)
+40e90b1 feat: add Supabase OAuth for Google/GitHub sign-in buttons
+d48f0e7 perf: optimize CMS data loading with parallel fetch, caching
+09bba86 fix: theme toggle now uses next-themes properly, default dark
+```
 
 ---
 
