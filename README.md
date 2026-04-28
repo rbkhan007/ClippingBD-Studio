@@ -416,7 +416,7 @@ MIT License - Copyright 2024-2026 ClippingBD Studio
 ---
 
 <p align="center">Built with ❤️ using Next.js, TypeScript, Tailwind CSS, and React Three Fiber</p>
-
+<p align="center">Made By Rakibul Hasan</p>
 <p align="center">
   <a href="https://vercel.com">
     <img src="https://vercelbadge.vercel.app/api/rbkhan007/ClippingBD-Studio" alt="Deploy with Vercel">
