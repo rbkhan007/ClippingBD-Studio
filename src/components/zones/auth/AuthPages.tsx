@@ -183,6 +183,10 @@ function LoginForm({ onSignupClick }: { onSignupClick: () => void }) {
 
       if (res.ok && data.user) {
         setUser(data.user);
+        const redirectPath = getDashboardPath(data.user.role);
+        setCurrentPage(redirectPath);
+        window.history.pushState({}, '', redirectPath);
+        router.push(redirectPath);
       } else {
         if (data.status === 'PENDING') {
           setError('Your account is pending approval. Please wait for an administrator to approve your account.');
